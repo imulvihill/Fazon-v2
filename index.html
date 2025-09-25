@@ -4,10 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Fazon Penguin</title>
-    <!-- Icono de la App -->
+    
+    <!-- PWA Manifest and App Icon -->
+    <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/svg+xml" href="https://www.svgrepo.com/show/134449/penguin.svg">
     <link rel="apple-touch-icon" href="https://www.svgrepo.com/show/134449/penguin.svg">
     <meta name="theme-color" content="#1f2937">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Fazon Penguin">
+    <meta name="application-name" content="Fazon Penguin">
+
     <!-- Google Fonts: Poppins -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -259,7 +267,18 @@
     </nav>
     
 <script>
-document.addEventListener('DOMContentLoaded', () => {
+    // --- PWA Service Worker Registration ---
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js').then(registration => {
+                console.log('ServiceWorker registration successful with scope: ', registration.scope);
+            }, err => {
+                console.log('ServiceWorker registration failed: ', err);
+            });
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
     // --- NAVEGACIÓN ---
     const navItems = document.querySelectorAll('.nav-item');
     const pages = document.querySelectorAll('.page');
@@ -689,6 +708,4 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
-
-
 
