@@ -240,6 +240,13 @@
                     <table><thead><tr><th>Cliente</th><th>Café</th><th>Kg Restantes</th><th>Acciones</th></tr></thead><tbody id="tablaStock"></tbody></table>
                 </div>
             </div>
+            <div class="card">
+                <h3>Reporte de Stock por Cliente</h3>
+                <form id="formReporteStock">
+                    <select id="reporteStockCliente" required><option value="">-- Seleccionar Cliente --</option></select>
+                    <button type="submit" class="btn-pdf">Generar PDF</button>
+                </form>
+            </div>
         </div>
     </main>
 
@@ -310,7 +317,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- UI RENDERING ---
     function renderUI() {
-        const clientSelects = ['ventaCliente', 'cobroCliente', 'stockCliente', 'reporteCuentaCorrienteCliente'];
+        const clientSelects = ['ventaCliente', 'cobroCliente', 'stockCliente', 'reporteCuentaCorrienteCliente', 'reporteStockCliente'];
         clientSelects.forEach(id => {
             const select = document.getElementById(id);
             if (!select) return;
@@ -584,6 +591,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!clienteId) { alert('Por favor, seleccione un cliente.'); return; }
         generateCuentaCorrientePdf(clienteId);
     });
+    
+    document.getElementById('formReporteStock').addEventListener('submit', e => {
+        e.preventDefault();
+        const clienteId = document.getElementById('reporteStockCliente').value;
+        if (!clienteId) { alert('Por favor, seleccione un cliente.'); return; }
+        generateConsolidatedStockPdf(clienteId);
+    });
 
     // --- ACTIONS (EDIT / DELETE / PDF) ---
     window.editItem = (type, index) => {
@@ -720,6 +734,41 @@ document.addEventListener('DOMContentLoaded', () => {
         pdf.save(`stock_lote_${cliente.nombre.replace(/\s/g,'_')}.pdf`);
     };
     
+    window.generateConsolidatedStockPdf = (clienteId) => {
+        const cliente = clientes.find(c => c.id == clienteId);
+        const stockCliente = stock.filter(s => s.clienteId == clienteId && s.kgActuales > 0.001);
+
+        if (!cliente) { return; }
+        if (stockCliente.length === 0) {
+            alert('Este cliente no tiene stock para reportar.'); return;
+        }
+
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF();
+        let y = 15, totalKgCliente = 0;
+
+        pdf.setFontSize(18); pdf.text(`Reporte Consolidado de Stock`, 105, y, { align: 'center' }); y += 10;
+        pdf.setFontSize(14); pdf.text(`Cliente: ${cliente.nombre}`, 14, y); y += 15;
+        pdf.setFontSize(12); pdf.setFont('helvetica', 'bold');
+        pdf.text('Resumen de Lotes de Café Verde', 14, y); y += 10;
+        
+        pdf.setFontSize(10);
+        stockCliente.forEach(item => {
+            const tipoCafe = tiposCafe.find(t => t.id == item.tipoCafeId);
+            pdf.setFont('helvetica', 'normal');
+            pdf.text(tipoCafe?.nombre || 'DESCONOCIDO', 16, y);
+            pdf.text(`${item.kgActuales.toFixed(2)} Kg`, 190, y, { align: 'right' });
+            totalKgCliente += item.kgActuales;
+            y += 7;
+        });
+        
+        y += 5; pdf.line(14, y, 196, y); y += 10;
+        pdf.setFontSize(14); pdf.setFont('helvetica', 'bold');
+        pdf.text('Total Stock Cliente:', 14, y);
+        pdf.text(`${totalKgCliente.toFixed(2)} Kg`, 190, y, { align: 'right' });
+        pdf.save(`stock_consolidado_${cliente.nombre.replace(/\s/g,'_')}.pdf`);
+    };
+
     window.generateCuentaCorrientePdf = (clienteId) => {
         const cliente = clientes.find(c => c.id == clienteId);
         if (!cliente) return;
