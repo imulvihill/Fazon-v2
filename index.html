@@ -6,8 +6,8 @@
     <title>Fazon Penguin</title>
     
     <link rel="manifest" href="manifest.json">
-    <link rel="icon" type="image/svg+xml" href="https://www.svgrepo.com/show/134449/penguin.svg">
-    <link rel="apple-touch-icon" href="https://www.svgrepo.com/show/134449/penguin.svg">
+    <link rel="icon" type="image/svg+xml" href="./icon-192.png">
+    <link rel="apple-touch-icon" href="./icon-192.png">
     <meta name="theme-color" content="#1f2937">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -124,6 +124,13 @@
     <main class="content">
         <div id="page-ventas" class="page active">
             <h2>🐧 Módulo de Ventas</h2>
+            
+            <div id="install-container" class="card" style="display: none; background-color: var(--success-color); color: white; border: 2px solid white;">
+                <h3 style="color: white;">Instalar Aplicación</h3>
+                <p>Lleva Fazon Penguin en tu celular para un acceso rápido y uso sin conexión.</p>
+                <button id="installBtn" style="background-color: white; color: var(--primary-text); font-weight: 600;">Instalar Ahora</button>
+            </div>
+            
             <div class="card">
                 <h3 id="formVentaTitle">Nueva Venta de Tueste</h3>
                 <form id="formVenta">
@@ -262,6 +269,36 @@
     
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+    // --- LÓGICA DEL BOTÓN DE INSTALACIÓN (PWA) ---
+    let deferredPrompt;
+    const installContainer = document.getElementById('install-container');
+    const installBtn = document.getElementById('installBtn');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        // Previene que Chrome 67 y anteriores muestren el prompt automáticamente
+        e.preventDefault();
+        // Guarda el evento para que pueda ser disparado más tarde
+        deferredPrompt = e;
+        // Muestra nuestro botón de instalación personalizado
+        installContainer.style.display = 'block';
+    });
+
+    installBtn.addEventListener('click', (e) => {
+        // Oculta nuestro botón de instalación
+        installContainer.style.display = 'none';
+        // Muestra el prompt de instalación del navegador
+        deferredPrompt.prompt();
+        // Espera a que el usuario responda al prompt
+        deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+                console.log('El usuario aceptó instalar la PWA');
+            } else {
+                console.log('El usuario rechazó instalar la PWA');
+            }
+            deferredPrompt = null;
+        });
+    });
+
     // --- STATE & DB ---
     let editingState = { type: null, index: -1 };
     let ventaEnEdicion = null;
@@ -816,7 +853,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!acc[tipoId]) {
                 acc[tipoId] = {
                     kgTotales: 0,
-                    // CORRECCIÓN: Usar '==' en lugar de '===' para comparar IDs de distinto tipo (número y texto).
                     tipoCafe: tiposCafe.find(t => t.id == tipoId)
                 };
             }
@@ -838,7 +874,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const nameA = a.tipoCafe ? a.tipoCafe.nombre : '';
             const nameB = b.tipoCafe ? b.tipoCafe.nombre : '';
             return nameA.localeCompare(nameB);
-        });
+});
 
         cafesOrdenados.forEach(grupo => {
             const nombreCafe = grupo.tipoCafe ? grupo.tipoCafe.nombre : 'DESCONOCIDO (TIPO ELIMINADO)';
