@@ -1,17 +1,18 @@
-const CACHE_NAME = 'fazon-penguin-cache-v3'; // Incrementamos la versión para forzar la actualización
+const CACHE_NAME = 'fazon-penguin-cache-v3';
 const urlsToCache = [
-    './', // Ruta relativa para la raíz
-    './index.html', // Ruta relativa para el archivo principal
+    './',
+    './index.html',
+    './manifest.json', // Es importante que el manifest también esté en caché
     'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap',
     'https://www.svgrepo.com/show/134449/penguin.svg',
-    'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js' // URL de la librería PDF agregada
+    'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'
 ];
 
 // Instalar el Service Worker y guardar los archivos en caché
 self.addEventListener('install', event => {
     event.waitUntil(
         caches.open(CACHE_NAME)
-            .then(cache => {
+           .then(cache => {
                 console.log('Opened cache and caching files');
                 return cache.addAll(urlsToCache);
             })
@@ -25,7 +26,7 @@ self.addEventListener('activate', event => {
         caches.keys().then(cacheNames => {
             return Promise.all(
                 cacheNames.map(cacheName => {
-                    if (cacheName !== CACHE_NAME) {
+                    if (cacheName!== CACHE_NAME) {
                         console.log('Deleting old cache:', cacheName);
                         return caches.delete(cacheName);
                     }
@@ -41,7 +42,7 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
     event.respondWith(
         caches.match(event.request)
-            .then(response => {
+           .then(response => {
                 // Si la respuesta está en la caché, la devuelve
                 if (response) {
                     return response;
@@ -51,3 +52,5 @@ self.addEventListener('fetch', event => {
             })
     );
 });
+
+
