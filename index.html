@@ -303,7 +303,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- UI RENDERING ---
     function renderUI() {
-        // Populate client selects
         const clientSelects = ['ventaCliente', 'cobroCliente', 'stockCliente'];
         clientSelects.forEach(id => {
             const select = document.getElementById(id);
@@ -314,40 +313,38 @@ document.addEventListener('DOMContentLoaded', () => {
             if (clientes.some(c => c.id == selectedValue)) select.value = selectedValue;
         });
         
-        // Populate coffee type selects
         const tipoCafeSelect = document.getElementById('stockTipoCafe');
         const selectedTipoCafe = tipoCafeSelect.value;
         tipoCafeSelect.innerHTML = '<option value="">-- Seleccione Tipo de Café --</option>';
-        tiposCafe.forEach(t => tipoCafeSelect.add(new Option(t.nombre, t.id)));
+        tiposCafe.sort((a, b) => a.nombre.localeCompare(b.nombre)).forEach(t => tipoCafeSelect.add(new Option(t.nombre, t.id)));
         if (tiposCafe.some(t => t.id == selectedTipoCafe)) tipoCafeSelect.value = selectedTipoCafe;
         
-        // Render Tipos de Cafe
         const tablaTiposCafe = document.getElementById('tablaTiposCafe');
         tablaTiposCafe.innerHTML = '';
-        tiposCafe.forEach((t, i) => {
+        tiposCafe.sort((a, b) => a.nombre.localeCompare(b.nombre)).forEach((t, i) => {
+            const originalIndex = tiposCafe.indexOf(t);
             tablaTiposCafe.innerHTML += `<tr>
                 <td>${t.nombre}</td>
                 <td class="actions-cell">
-                    <button class="btn-small btn-warning" onclick="editItem('tipoCafe', ${i})">Editar</button>
-                    <button class="btn-small btn-danger" onclick="deleteItem('tipoCafe', ${i})">X</button>
+                    <button class="btn-small btn-warning" onclick="editItem('tipoCafe', ${originalIndex})">Editar</button>
+                    <button class="btn-small btn-danger" onclick="deleteItem('tipoCafe', ${originalIndex})">X</button>
                 </td>
             </tr>`;
         });
 
-        // Render Clientes
         const tablaClientes = document.getElementById('tablaClientes');
         tablaClientes.innerHTML = '';
-        clientes.forEach((c, i) => {
+        clientes.sort((a, b) => a.nombre.localeCompare(b.nombre)).forEach((c, i) => {
+            const originalIndex = clientes.indexOf(c);
             tablaClientes.innerHTML += `<tr>
                 <td>${c.nombre}</td>
                 <td class="actions-cell">
-                    <button class="btn-small btn-warning" onclick="editItem('cliente', ${i})">Editar</button>
-                    <button class="btn-small btn-danger" onclick="deleteItem('cliente', ${i})">X</button>
+                    <button class="btn-small btn-warning" onclick="editItem('cliente', ${originalIndex})">Editar</button>
+                    <button class="btn-small btn-danger" onclick="deleteItem('cliente', ${originalIndex})">X</button>
                 </td>
             </tr>`;
         });
         
-        // Render Stock
         const tablaStock = document.getElementById('tablaStock');
         tablaStock.innerHTML = '';
         stock.forEach((s, i) => {
@@ -366,7 +363,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Render Ventas, Logistica, Cobros, Cuentas Corrientes... (resto del código sin cambios)
         const tablaVentas = document.getElementById('tablaVentas');
         tablaVentas.innerHTML = '';
         ventas.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)).forEach(v => {
@@ -378,10 +374,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${v.kg} Kg</td>
                 <td class="text-right">${formatCurrency(v.totalARS)}</td>
                 <td class="actions-cell">
+                    <button class="btn-small btn-pdf" onclick="generateRoastOrderPdf(${originalIndex})">Orden</button>
                     <button class="btn-small btn-danger" onclick="deleteItem('venta', ${originalIndex})">Borrar</button>
                 </td>
             </tr>`;
         });
+        
         const tablaLogistica = document.getElementById('tablaLogistica');
         tablaLogistica.innerHTML = '';
         logistica.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)).forEach(l => {
@@ -397,6 +395,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </td>
             </tr>`;
         });
+
         const tablaCobros = document.getElementById('tablaCobros');
         tablaCobros.innerHTML = '';
         cobros.sort((a,b) => new Date(b.fecha) - new Date(a.fecha)).forEach((cob, i) => {
@@ -411,6 +410,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </td>
             </tr>`;
         });
+
         const tablaCuentasCorrientes = document.getElementById('tablaCuentasCorrientes');
         tablaCuentasCorrientes.innerHTML = '';
         clientes.forEach(c => {
@@ -430,9 +430,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- FORM LOGIC & EVENT LISTENERS ---
-
-    // Generic form handler for Clientes and Tipos de Café
-    const setupForm = (formId, titleId, inputId, buttonId, cancelButtonId, collection, entityName) => {
+    const setupForm = (formId, titleId, inputId, buttonId, cancelButtonId, collection, entityName, entityKey) => {
         const form = document.getElementById(formId);
         const title = document.getElementById(titleId);
         const input = document.getElementById(inputId);
@@ -452,7 +450,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const nombre = input.value.trim();
             if (!nombre) return;
 
-            if (editingState.type === entityName.toLowerCase().replace(' ', '')) {
+            if (editingState.type === entityKey) {
                 collection[editingState.index].nombre = nombre;
                 alert(`${entityName} actualizado!`);
             } else {
@@ -466,11 +464,10 @@ document.addEventListener('DOMContentLoaded', () => {
         cancelButton.addEventListener('click', resetForm);
     };
 
-    setupForm('formCliente', 'formClienteTitle', 'clienteNombre', 'btnGuardarCliente', 'btnCancelarEdicion', clientes, 'Cliente');
-    setupForm('formTipoCafe', 'formTipoCafeTitle', 'tipoCafeNombre', 'btnGuardarTipoCafe', 'btnCancelarEdicionTipoCafe', tiposCafe, 'Tipo de Café');
+    setupForm('formCliente', 'formClienteTitle', 'clienteNombre', 'btnGuardarCliente', 'btnCancelarEdicion', clientes, 'Cliente', 'cliente');
+    setupForm('formTipoCafe', 'formTipoCafeTitle', 'tipoCafeNombre', 'btnGuardarTipoCafe', 'btnCancelarEdicionTipoCafe', tiposCafe, 'Tipo de Café', 'tipoCafe');
 
 
-    // Stock Form
     document.getElementById('formStock').addEventListener('submit', e => {
         e.preventDefault();
         const kgPorBulto = parseFloat(document.getElementById('stockKgPorBulto').value);
@@ -483,19 +480,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const fecha = document.getElementById('stockFecha').value;
 
         if (!clienteId || !tipoCafeId || !fecha || isNaN(totalKg) || totalKg <= 0) {
-            alert('Error: Verifique que todos los campos estén completos.');
-            return;
+            alert('Error: Verifique que todos los campos estén completos.'); return;
         }
         
         const tipoCafeSeleccionado = tiposCafe.find(t => t.id == tipoCafeId);
-
         const nuevoLote = {
-            id: Date.now(),
-            clienteId: clienteId,
-            tipoCafeId: tipoCafeId,
-            fechaIngreso: fecha,
-            kgIniciales: totalKg,
-            kgActuales: totalKg,
+            id: Date.now(), clienteId, tipoCafeId, fechaIngreso: fecha,
+            kgIniciales: totalKg, kgActuales: totalKg,
             movimientos: [{ fecha: fecha, tipo: 'Ingreso', kg: totalKg }]
         };
         stock.push(nuevoLote);
@@ -507,25 +498,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 monto: costoEnvioTotal, loteId: nuevoLote.id
             });
         }
-        
-        saveData();
-        renderUI();
-        e.target.reset();
+        saveData(); renderUI(); e.target.reset();
         alert(`Stock ingresado: ${totalKg.toFixed(2)} Kg.`);
     });
     
-    // Other form handlers (Cobros, Ventas) remain mostly the same
     document.getElementById('formCobro').addEventListener('submit', e => {
         e.preventDefault();
         cobros.push({
-            id: Date.now(),
-            clienteId: document.getElementById('cobroCliente').value,
+            id: Date.now(), clienteId: document.getElementById('cobroCliente').value,
             fecha: document.getElementById('cobroFecha').value,
             monto: parseFloat(document.getElementById('cobroMonto').value),
         });
-        saveData();
-        renderUI();
-        e.target.reset();
+        saveData(); renderUI(); e.target.reset();
         alert('Cobro registrado!');
     });
     
@@ -533,10 +517,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const clienteId = e.target.value;
         const stockSelect = document.getElementById('ventaStockLote');
         stockSelect.innerHTML = '<option value="">-- Seleccione un lote de café --</option>';
-        if (!clienteId) {
-            stockSelect.disabled = true;
-            return;
-        }
+        if (!clienteId) { stockSelect.disabled = true; return; }
         const stockDisponible = stock.filter(s => s.clienteId == clienteId && s.kgActuales > 0.001);
         if (stockDisponible.length === 0) {
             stockSelect.disabled = true;
@@ -583,33 +564,32 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
         
-        saveData();
-        renderUI();
-        e.target.reset();
+        saveData(); renderUI(); e.target.reset();
         document.getElementById('ventaStockLote').disabled = true;
         document.getElementById('ventaStockLote').innerHTML = '<option value="">-- Primero seleccione un cliente --</option>';
         alert('Venta registrada con éxito!');
     });
 
-    // --- ACTIONS (EDIT / DELETE) ---
+    // --- ACTIONS (EDIT / DELETE / PDF) ---
     window.editItem = (type, index) => {
         const entityMap = {
-            'cliente': { collection: clientes, page: 'clientes', formId: 'formCliente', inputId: 'clienteNombre' },
-            'tipoCafe': { collection: tiposCafe, page: 'tipos-cafe', formId: 'formTipoCafe', inputId: 'tipoCafeNombre' },
+            'cliente': { collection: clientes, page: 'clientes', formId: 'formCliente', inputId: 'clienteNombre', key: 'cliente' },
+            'tipoCafe': { collection: tiposCafe, page: 'tipos-cafe', formId: 'formTipoCafe', inputId: 'tipoCafeNombre', key: 'tipoCafe' },
         };
 
         if (entityMap[type]) {
-            const { collection, page, inputId } = entityMap[type];
-            editingState = { type: type, index };
-            const item = collection[index];
-            document.getElementById(inputId).value = item.nombre;
-            // Trigger form setup to show cancel button etc.
-            document.querySelector(`#${entityMap[type].formId} button[type=submit]`).click(); // a bit of a hack to trigger the state change
-            editingState = { type: type, index }; // re-assert state
-            document.getElementById(entityMap[type].inputId).value = item.nombre; // re-assert value
+            const config = entityMap[type];
+            editingState = { type: config.key, index };
+            const item = config.collection[index];
+            document.getElementById(config.inputId).value = item.nombre;
             
-            showPage(page);
-            document.getElementById(inputId).focus();
+            // Set up form for editing
+            document.getElementById(config.formId.replace('form','form') + 'Title').textContent = `Editando ${config.key}`;
+            document.getElementById(config.formId.replace('form','btnGuardar')).textContent = `Actualizar`;
+            document.getElementById(config.formId.replace('form','btnCancelarEdicion')).style.display = 'block';
+
+            showPage(config.page);
+            document.getElementById(config.inputId).focus();
         }
         
         if (type === 'stock') {
@@ -617,9 +597,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const nuevaFecha = prompt("Editar fecha de ingreso (YYYY-MM-DD):", item.fechaIngreso);
             if (nuevaFecha && /^\d{4}-\d{2}-\d{2}$/.test(nuevaFecha)) {
                 item.fechaIngreso = nuevaFecha;
-                saveData();
-                renderUI();
-                alert('Fecha del lote actualizada.');
+                saveData(); renderUI(); alert('Fecha del lote actualizada.');
             } else if (nuevaFecha) {
                 alert("Formato de fecha inválido. Use AAAA-MM-DD.");
             }
@@ -633,30 +611,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 item = clientes[index]; name = item.nombre;
                 if (confirm(`¿Seguro que quieres eliminar al cliente "${name}"? Se borrarán todas sus transacciones asociadas.`)) {
                     const id = item.id; clientes.splice(index, 1);
-                    ventas = ventas.filter(v => v.clienteId != id);
-                    stock = stock.filter(s => s.clienteId != id);
-                    cobros = cobros.filter(c => c.clienteId != id);
-                    logistica = logistica.filter(l => l.clienteId != id);
+                    ventas = ventas.filter(v => v.clienteId != id); stock = stock.filter(s => s.clienteId != id);
+                    cobros = cobros.filter(c => c.clienteId != id); logistica = logistica.filter(l => l.clienteId != id);
                 }
                 break;
             case 'tipoCafe':
                 item = tiposCafe[index]; name = item.nombre;
-                const isUsed = stock.some(s => s.tipoCafeId == item.id);
-                if (isUsed) {
-                    alert(`No se puede eliminar "${name}" porque está siendo usado en un lote de stock.`);
-                    return;
+                if (stock.some(s => s.tipoCafeId == item.id)) {
+                    alert(`No se puede eliminar "${name}" porque está siendo usado en un lote de stock.`); return;
                 }
-                if (confirm(`¿Seguro que quieres eliminar el tipo de café "${name}"?`)) {
-                    tiposCafe.splice(index, 1);
-                }
+                if (confirm(`¿Seguro que quieres eliminar el tipo de café "${name}"?`)) { tiposCafe.splice(index, 1); }
                 break;
             case 'stock':
                 item = stock[index];
-                const tipo = tiposCafe.find(t => t.id == item.tipoCafeId);
-                name = tipo?.nombre || "desconocido";
+                const tipo = tiposCafe.find(t => t.id == item.tipoCafeId); name = tipo?.nombre || "desconocido";
                 if (confirm(`¿Seguro que quieres eliminar el lote de "${name}"? Las ventas asociadas NO se revertirán.`)) {
-                    logistica = logistica.filter(l => l.loteId !== item.id);
-                    stock.splice(index, 1);
+                    logistica = logistica.filter(l => l.loteId !== item.id); stock.splice(index, 1);
                 }
                 break;
             case 'venta':
@@ -667,25 +637,46 @@ document.addEventListener('DOMContentLoaded', () => {
                         lote.kgActuales += item.kg;
                         lote.movimientos = lote.movimientos.filter(m => !(m.tipo === 'Venta Tueste' && m.kg === -item.kg && m.fecha === item.fecha));
                     }
-                    logistica = logistica.filter(l => l.ventaId !== item.id);
-                    ventas.splice(index, 1);
+                    logistica = logistica.filter(l => l.ventaId !== item.id); ventas.splice(index, 1);
                 }
                 break;
             case 'cobro':
                 item = cobros[index];
-                if (confirm(`¿Seguro que quieres eliminar este cobro de ${formatCurrency(item.monto)}?`)) {
-                    cobros.splice(index, 1);
-                }
+                if (confirm(`¿Seguro que quieres eliminar este cobro de ${formatCurrency(item.monto)}?`)) { cobros.splice(index, 1); }
                 break;
             case 'logistica':
                  item = logistica[index];
-                 if (confirm(`¿Seguro que quieres eliminar este costo de logística de ${formatCurrency(item.monto)}?`)) {
-                    logistica.splice(index, 1);
-                }
+                 if (confirm(`¿Seguro que quieres eliminar este costo de logística de ${formatCurrency(item.monto)}?`)) { logistica.splice(index, 1); }
                 break;
         }
         saveData();
         renderUI();
+    };
+
+    window.generateRoastOrderPdf = (saleIndex) => {
+        const sale = ventas[saleIndex];
+        if (!sale) { alert('Venta no encontrada.'); return; }
+
+        const cliente = clientes.find(c => c.id == sale.clienteId);
+        const stockLote = stock.find(s => s.id == sale.stockIdDescontado);
+        const tipoCafe = stockLote ? tiposCafe.find(t => t.id == stockLote.tipoCafeId) : null;
+
+        if (!cliente || !tipoCafe) { alert('No se pudieron encontrar los detalles del cliente o del café.'); return; }
+
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF();
+        let y = 20;
+
+        pdf.setFontSize(22); pdf.setFont('helvetica', 'bold'); pdf.text('Orden de Tueste', 105, y, { align: 'center' }); y += 15;
+        pdf.setFontSize(12); pdf.setFont('helvetica', 'normal');
+        pdf.text(`Fecha: ${formatDate(sale.fecha)}`, 14, y); y += 15;
+
+        pdf.setFontSize(14); pdf.text(`Cliente:`, 14, y); pdf.setFont('helvetica', 'bold'); pdf.text(cliente.nombre, 40, y); y += 10;
+        pdf.setFont('helvetica', 'normal'); pdf.text(`Café a Tostar:`, 14, y); pdf.setFont('helvetica', 'bold'); pdf.text(tipoCafe.nombre, 45, y); y += 10;
+        pdf.setFont('helvetica', 'normal'); pdf.text(`Cantidad:`, 14, y); pdf.setFont('helvetica', 'bold'); pdf.text(`${sale.kg.toFixed(2)} Kg`, 40, y); y += 15;
+        pdf.setFont('helvetica', 'normal'); pdf.text(`Envasar en:`, 14, y); pdf.setFont('helvetica', 'bold'); pdf.text(`${sale.bultos} bulto(s)`, 45, y);
+
+        pdf.save(`orden_tueste_${cliente.nombre.replace(/\s/g,'_')}_${sale.fecha}.pdf`);
     };
 
     // --- INITIALIZATION ---
