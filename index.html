@@ -816,7 +816,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!acc[tipoId]) {
                 acc[tipoId] = {
                     kgTotales: 0,
-                    tipoCafe: tiposCafe.find(t => t.id === tipoId)
+                    // CORRECCIÓN: Usar '==' en lugar de '===' para comparar IDs de distinto tipo (número y texto).
+                    tipoCafe: tiposCafe.find(t => t.id == tipoId)
                 };
             }
             acc[tipoId].kgTotales += lote.kgActuales;
@@ -833,7 +834,6 @@ document.addEventListener('DOMContentLoaded', () => {
         pdf.text('Resumen de Café Verde por Tipo', 14, y); y += 10;
         
         pdf.setFontSize(10);
-        // CORRECCIÓN: Se agrega una comprobación para evitar errores si un tipo de café fue eliminado.
         const cafesOrdenados = Object.values(stockAgrupado).sort((a, b) => {
             const nameA = a.tipoCafe ? a.tipoCafe.nombre : '';
             const nameB = b.tipoCafe ? b.tipoCafe.nombre : '';
