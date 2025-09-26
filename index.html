@@ -169,6 +169,13 @@
                     <table><thead><tr><th>Fecha</th><th>Cliente</th><th>Monto</th><th>Acciones</th></tr></thead><tbody id="tablaCobros"></tbody></table>
                 </div>
             </div>
+            <div class="card">
+                <h3>Reporte de Cuenta Corriente</h3>
+                <form id="formReporteCuentaCorriente">
+                    <select id="reporteCuentaCorrienteCliente" required><option value="">-- Seleccionar Cliente --</option></select>
+                    <button type="submit" class="btn-pdf">Generar PDF de Saldo</button>
+                </form>
+            </div>
         </div>
         
         <div id="page-tipos-cafe" class="page">
@@ -303,13 +310,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- UI RENDERING ---
     function renderUI() {
-        const clientSelects = ['ventaCliente', 'cobroCliente', 'stockCliente'];
+        const clientSelects = ['ventaCliente', 'cobroCliente', 'stockCliente', 'reporteCuentaCorrienteCliente'];
         clientSelects.forEach(id => {
             const select = document.getElementById(id);
             if (!select) return;
             const selectedValue = select.value;
             select.innerHTML = `<option value="">-- Seleccionar Cliente --</option>`;
-            clientes.forEach(c => select.add(new Option(c.nombre, c.id)));
+            clientes.sort((a, b) => a.nombre.localeCompare(b.nombre)).forEach(c => select.add(new Option(c.nombre, c.id)));
             if (clientes.some(c => c.id == selectedValue)) select.value = selectedValue;
         });
         
@@ -321,8 +328,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const tablaTiposCafe = document.getElementById('tablaTiposCafe');
         tablaTiposCafe.innerHTML = '';
-        tiposCafe.sort((a, b) => a.nombre.localeCompare(b.nombre)).forEach((t, i) => {
-            const originalIndex = tiposCafe.indexOf(t);
+        tiposCafe.sort((a, b) => a.nombre.localeCompare(b.nombre)).forEach(t => {
+            const originalIndex = tiposCafe.findIndex(item => item.id === t.id);
             tablaTiposCafe.innerHTML += `<tr>
                 <td>${t.nombre}</td>
                 <td class="actions-cell">
@@ -334,8 +341,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const tablaClientes = document.getElementById('tablaClientes');
         tablaClientes.innerHTML = '';
-        clientes.sort((a, b) => a.nombre.localeCompare(b.nombre)).forEach((c, i) => {
-            const originalIndex = clientes.indexOf(c);
+        clientes.sort((a, b) => a.nombre.localeCompare(b.nombre)).forEach(c => {
+            const originalIndex = clientes.findIndex(item => item.id === c.id);
             tablaClientes.innerHTML += `<tr>
                 <td>${c.nombre}</td>
                 <td class="actions-cell">
@@ -356,6 +363,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td>${tipoCafe?.nombre || 'DESCONOCIDO'}</td>
                     <td>${s.kgActuales.toFixed(2)} Kg</td>
                     <td class="actions-cell">
+                        <button class="btn-small btn-pdf" onclick="generateStockPdf(${i})">Detalle</button>
                         <button class="btn-small btn-warning" onclick="editItem('stock', ${i})">Editar Fecha</button>
                         <button class="btn-small btn-danger" onclick="deleteItem('stock', ${i})">X</button>
                     </td>
@@ -398,7 +406,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const tablaCobros = document.getElementById('tablaCobros');
         tablaCobros.innerHTML = '';
-        cobros.sort((a,b) => new Date(b.fecha) - new Date(a.fecha)).forEach((cob, i) => {
+        cobros.sort((a,b) => new Date(b.fecha) - new Date(a.fecha)).forEach((cob) => {
             const originalIndex = cobros.indexOf(cob);
             const cliente = clientes.find(c => c.id == cob.clienteId);
             tablaCobros.innerHTML += `<tr>
@@ -570,11 +578,18 @@ document.addEventListener('DOMContentLoaded', () => {
         alert('Venta registrada con éxito!');
     });
 
+    document.getElementById('formReporteCuentaCorriente').addEventListener('submit', e => {
+        e.preventDefault();
+        const clienteId = document.getElementById('reporteCuentaCorrienteCliente').value;
+        if (!clienteId) { alert('Por favor, seleccione un cliente.'); return; }
+        generateCuentaCorrientePdf(clienteId);
+    });
+
     // --- ACTIONS (EDIT / DELETE / PDF) ---
     window.editItem = (type, index) => {
         const entityMap = {
-            'cliente': { collection: clientes, page: 'clientes', formId: 'formCliente', inputId: 'clienteNombre', key: 'cliente' },
-            'tipoCafe': { collection: tiposCafe, page: 'tipos-cafe', formId: 'formTipoCafe', inputId: 'tipoCafeNombre', key: 'tipoCafe' },
+            'cliente': { collection: clientes, page: 'clientes', formId: 'formCliente', inputId: 'clienteNombre', key: 'cliente', name: 'Cliente' },
+            'tipoCafe': { collection: tiposCafe, page: 'tipos-cafe', formId: 'formTipoCafe', inputId: 'tipoCafeNombre', key: 'tipoCafe', name: 'Tipo de Café' },
         };
 
         if (entityMap[type]) {
@@ -582,12 +597,9 @@ document.addEventListener('DOMContentLoaded', () => {
             editingState = { type: config.key, index };
             const item = config.collection[index];
             document.getElementById(config.inputId).value = item.nombre;
-            
-            // Set up form for editing
-            document.getElementById(config.formId.replace('form','form') + 'Title').textContent = `Editando ${config.key}`;
+            document.getElementById(config.formId.replace('form','form') + 'Title').textContent = `Editando ${config.name}`;
             document.getElementById(config.formId.replace('form','btnGuardar')).textContent = `Actualizar`;
             document.getElementById(config.formId.replace('form','btnCancelarEdicion')).style.display = 'block';
-
             showPage(config.page);
             document.getElementById(config.inputId).focus();
         }
@@ -677,6 +689,82 @@ document.addEventListener('DOMContentLoaded', () => {
         pdf.setFont('helvetica', 'normal'); pdf.text(`Envasar en:`, 14, y); pdf.setFont('helvetica', 'bold'); pdf.text(`${sale.bultos} bulto(s)`, 45, y);
 
         pdf.save(`orden_tueste_${cliente.nombre.replace(/\s/g,'_')}_${sale.fecha}.pdf`);
+    };
+
+    window.generateStockPdf = (stockIndex) => {
+        const item = stock[stockIndex];
+        const cliente = clientes.find(c => c.id == item.clienteId);
+        const tipoCafe = tiposCafe.find(t => t.id == item.tipoCafeId);
+        if (!cliente || !tipoCafe) { alert('Faltan datos del cliente o del tipo de café.'); return; }
+
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF();
+        let y = 15;
+
+        pdf.setFontSize(18); pdf.text('Reporte de Detalle de Lote', 105, y, { align: 'center' }); y += 10;
+        pdf.setFontSize(12); pdf.text(`Cliente: ${cliente.nombre}`, 14, y); y += 7;
+        pdf.text(`Café: ${tipoCafe.nombre}`, 14, y); y += 15;
+        
+        pdf.setFontSize(14); pdf.text('Movimientos del Lote', 14, y); y += 10;
+        pdf.setFontSize(10);
+        item.movimientos.sort((a,b) => new Date(a.fecha) - new Date(b.fecha)).forEach(m => {
+            pdf.text(`${formatDate(m.fecha)}: ${m.tipo}`, 16, y);
+            pdf.text(`${m.kg.toFixed(2)} Kg`, 190, y, { align: 'right' });
+            y += 7;
+        });
+        
+        y += 5; pdf.line(14, y, 196, y); y += 10;
+        pdf.setFontSize(14); pdf.setFont('helvetica', 'bold');
+        pdf.text('Stock Restante:', 14, y);
+        pdf.text(`${item.kgActuales.toFixed(2)} Kg`, 190, y, { align: 'right' });
+        pdf.save(`stock_lote_${cliente.nombre.replace(/\s/g,'_')}.pdf`);
+    };
+    
+    window.generateCuentaCorrientePdf = (clienteId) => {
+        const cliente = clientes.find(c => c.id == clienteId);
+        if (!cliente) return;
+
+        const transacciones = [
+            ...ventas.filter(v => v.clienteId == clienteId).map(v => ({ fecha: v.fecha, concepto: `Venta Tueste ${v.kg}Kg`, debito: v.totalARS, credito: 0 })),
+            ...logistica.filter(l => l.clienteId == clienteId).map(l => ({ fecha: l.fecha, concepto: l.descripcion, debito: l.monto, credito: 0 })),
+            ...cobros.filter(c => c.clienteId == clienteId).map(c => ({ fecha: c.fecha, concepto: 'Cobro', debito: 0, credito: c.monto }))
+        ].sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+
+        if (transacciones.length === 0) {
+            alert('Este cliente no tiene movimientos en su cuenta corriente.'); return;
+        }
+
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF();
+        let y = 15, saldo = 0;
+
+        pdf.setFontSize(18); pdf.text('Estado de Cuenta Corriente', 105, y, { align: 'center' }); y += 10;
+        pdf.setFontSize(12); pdf.text(`Cliente: ${cliente.nombre}`, 14, y); y += 7;
+        pdf.text(`Fecha de Emisión: ${new Date().toLocaleDateString('es-AR')}`, 14, y); y += 15;
+        pdf.setFontSize(10); pdf.setFont('helvetica', 'bold');
+        pdf.text('Fecha', 14, y); pdf.text('Concepto', 40, y);
+        pdf.text('Débito', 130, y, { align: 'right' });
+        pdf.text('Crédito', 160, y, { align: 'right' });
+        pdf.text('Saldo', 190, y, { align: 'right' });
+        y += 7; pdf.line(14, y - 2, 196, y - 2);
+        pdf.setFont('helvetica', 'normal');
+        
+        transacciones.forEach(t => {
+            saldo += t.debito - t.credito;
+            pdf.text(formatDate(t.fecha), 14, y);
+            pdf.text(t.concepto.substring(0, 45), 40, y);
+            pdf.text(t.debito > 0 ? formatCurrency(t.debito) : '', 130, y, { align: 'right' });
+            pdf.text(t.credito > 0 ? formatCurrency(t.credito) : '', 160, y, { align: 'right' });
+            pdf.text(formatCurrency(saldo), 190, y, { align: 'right' });
+            y += 7;
+            if (y > 280) { pdf.addPage(); y = 15; }
+        });
+
+        y += 5; pdf.line(14, y, 196, y); y += 10;
+        pdf.setFontSize(14); pdf.setFont('helvetica', 'bold');
+        pdf.text('Saldo Deudor Final:', 140, y, { align: 'right' });
+        pdf.text(formatCurrency(saldo), 190, y, { align: 'right' });
+        pdf.save(`cuenta_corriente_${cliente.nombre.replace(/\s/g,'_')}.pdf`);
     };
 
     // --- INITIALIZATION ---
