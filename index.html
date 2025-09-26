@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Fazon Penguin</title>
     
-    <!-- PWA Manifest and App Icon -->
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/svg+xml" href="https://www.svgrepo.com/show/134449/penguin.svg">
     <link rel="apple-touch-icon" href="https://www.svgrepo.com/show/134449/penguin.svg">
@@ -16,11 +15,9 @@
     <meta name="apple-mobile-web-app-title" content="Fazon Penguin">
     <meta name="application-name" content="Fazon Penguin">
 
-    <!-- Google Fonts: Poppins -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Librería para PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
@@ -46,15 +43,15 @@
             padding-bottom: 80px; /* Space for bottom nav */
         }
 
-        .content {
+       .content {
             padding: 20px;
         }
 
-        .page { display: none; }
-        .page.active { display: block; animation: fadeIn 0.3s ease-in-out; }
+       .page { display: none; }
+       .page.active { display: block; animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        .card {
+       .card {
             background: var(--card-bg);
             padding: 20px;
             border-radius: 12px;
@@ -90,9 +87,9 @@
             background-color: var(--accent-color);
         }
         
-        .btn-success { background-color: var(--success-color); }
-        .btn-danger { background-color: var(--danger-color); }
-        .btn-pdf { background-color: var(--secondary-text); }
+       .btn-success { background-color: var(--success-color); }
+       .btn-danger { background-color: var(--danger-color); }
+       .btn-pdf { background-color: var(--secondary-text); }
 
         table {
             width: 100%;
@@ -106,10 +103,10 @@
             font-size: 14px;
         }
         th { font-weight: 600; }
-        .text-right { text-align: right; }
+       .text-right { text-align: right; }
 
         /* Bottom Navigation */
-        .bottom-nav {
+       .bottom-nav {
             position: fixed;
             bottom: 0;
             left: 0;
@@ -119,7 +116,7 @@
             box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
             z-index: 1000;
         }
-        .nav-item {
+       .nav-item {
             flex: 1;
             padding: 10px 0;
             text-align: center;
@@ -128,8 +125,8 @@
             font-size: 12px;
             transition: background-color 0.2s;
         }
-        .nav-item .icon { font-size: 24px; }
-        .nav-item.active {
+       .nav-item.icon { font-size: 24px; }
+       .nav-item.active {
             background-color: var(--nav-active-bg);
             color: var(--nav-active-text);
         }
@@ -139,7 +136,6 @@
 <body>
 
     <main class="content">
-        <!-- MODULO VENTAS -->
         <div id="page-ventas" class="page active">
             <h2>🐧 Módulo de Ventas</h2>
             <div class="card" id="installCard" style="display: none;">
@@ -169,7 +165,6 @@
             </div>
         </div>
 
-        <!-- MODULO COBROS -->
         <div id="page-cobros" class="page">
             <h2>Módulo de Cobros y Cuentas Corrientes</h2>
             <div class="card">
@@ -197,7 +192,6 @@
             </div>
         </div>
 
-        <!-- MODULO CLIENTES -->
         <div id="page-clientes" class="page">
             <h2>Módulo de Clientes</h2>
             <div class="card">
@@ -213,7 +207,6 @@
             </div>
         </div>
 
-        <!-- MODULO LOGISTICA -->
         <div id="page-logistica" class="page">
             <h2>Módulo de Logística</h2>
             <div class="card">
@@ -225,7 +218,6 @@
             </div>
         </div>
 
-        <!-- MODULO STOCK -->
         <div id="page-stock" class="page">
             <h2>Módulo de Stock</h2>
             <div class="card">
@@ -248,7 +240,6 @@
             </div>
         </div>
 
-        <!-- MODULO REPORTES -->
         <div id="page-reportes" class="page">
             <h2>Módulo de Reportes</h2>
             <div class="card">
@@ -261,7 +252,6 @@
         </div>
     </main>
 
-    <!-- Barra de Navegación Inferior -->
     <nav class="bottom-nav">
         <div class="nav-item active" data-page="ventas"><div class="icon">🛒</div><div>Ventas</div></div>
         <div class="nav-item" data-page="cobros"><div class="icon">💲</div><div>Cobros</div></div>
@@ -324,11 +314,11 @@
     });
 
     // --- BASE DE DATOS LOCAL ---
-    let clientes = JSON.parse(localStorage.getItem('fazon_clientes')) || [];
-    let stock = JSON.parse(localStorage.getItem('fazon_stock')) || [];
-    let ventas = JSON.parse(localStorage.getItem('fazon_ventas')) || [];
-    let cobros = JSON.parse(localStorage.getItem('fazon_cobros')) || [];
-    let logistica = JSON.parse(localStorage.getItem('fazon_logistica')) || [];
+    let clientes = JSON.parse(localStorage.getItem('fazon_clientes')) ||;
+    let stock = JSON.parse(localStorage.getItem('fazon_stock')) ||;
+    let ventas = JSON.parse(localStorage.getItem('fazon_ventas')) ||;
+    let cobros = JSON.parse(localStorage.getItem('fazon_cobros')) ||;
+    let logistica = JSON.parse(localStorage.getItem('fazon_logistica')) ||;
 
     const saveData = () => {
         localStorage.setItem('fazon_clientes', JSON.stringify(clientes));
@@ -373,7 +363,7 @@
         stock.forEach((s, i) => {
             if (s.kgActuales > 0.001) {
                  const cliente = clientes.find(c => c.id == s.clienteId);
-                 document.getElementById('tablaStock').innerHTML += `<tr><td>${cliente ? cliente.nombre : 'N/A'}</td><td>${s.descripcion}</td><td>${s.kgActuales.toFixed(2)} Kg</td><td><button style="padding:5px 8px; font-size:12px;" onclick="generateStockPdf(${i})">PDF</button></td></tr>`;
+                 document.getElementById('tablaStock').innerHTML += `<tr><td>${cliente? cliente.nombre : 'N/A'}</td><td>${s.descripcion}</td><td>${s.kgActuales.toFixed(2)} Kg</td><td><button style="padding:5px 8px; font-size:12px;" onclick="generateStockPdf(${i})">PDF</button></td></tr>`;
             }
         });
 
@@ -383,7 +373,7 @@
             const cliente = clientes.find(c => c.id == v.clienteId);
             document.getElementById('tablaVentas').innerHTML += `<tr>
                 <td>${v.fecha}</td>
-                <td>${cliente ? cliente.nombre : 'N/A'}</td>
+                <td>${cliente? cliente.nombre : 'N/A'}</td>
                 <td>${v.kg} Kg</td>
                 <td class="text-right">${formatCurrency(v.totalARS)}</td>
                 <td><button style="padding:5px 8px; font-size:12px;" onclick="generateRoastOrderPdf(${i})">Orden</button></td>
@@ -394,7 +384,7 @@
         document.getElementById('tablaLogistica').innerHTML = '';
         logistica.forEach(l => {
             const cliente = clientes.find(c => c.id == l.clienteId);
-            document.getElementById('tablaLogistica').innerHTML += `<tr><td>${l.fecha}</td><td>${cliente ? cliente.nombre : 'N/A'}</td><td>${l.descripcion}</td><td class="text-right">${formatCurrency(l.monto)}</td></tr>`;
+            document.getElementById('tablaLogistica').innerHTML += `<tr><td>${l.fecha}</td><td>${cliente? cliente.nombre : 'N/A'}</td><td>${l.descripcion}</td><td class="text-right">${formatCurrency(l.monto)}</td></tr>`;
         });
 
         // Render Cuentas Corrientes
@@ -404,7 +394,7 @@
             const totalLogistica = logistica.filter(l => l.clienteId == c.id).reduce((sum, l) => sum + l.monto, 0);
             const totalCobros = cobros.filter(cob => cob.clienteId == c.id).reduce((sum, cob) => sum + cob.monto, 0);
             const saldo = totalVentas + totalLogistica - totalCobros;
-            document.getElementById('tablaCuentasCorrientes').innerHTML += `<tr><td>${c.nombre}</td><td class="text-right ${saldo > 0 ? 'btn-danger' : 'btn-success'}" style="color:white; padding: 5px;">${formatCurrency(saldo)}</td></tr>`;
+            document.getElementById('tablaCuentasCorrientes').innerHTML += `<tr><td>${c.nombre}</td><td class="text-right ${saldo > 0? 'btn-danger' : 'btn-success'}" style="color:white; padding: 5px;">${formatCurrency(saldo)}</td></tr>`;
         });
     }
 
@@ -426,13 +416,17 @@
         const kgPorBulto = parseFloat(document.getElementById('stockKgPorBulto').value);
         const bultos = parseInt(document.getElementById('stockBultos').value);
         const totalKg = kgPorBulto * bultos;
-        const costoEnvioPorBulto = parseFloat(document.getElementById('stockCostoEnvioPorBulto').value) || 0;
+        const costoEnvioPorBulto = parseFloat(document.getElementById('stockCostoEnvioPorBulto').value) |
+
+| 0;
         const costoEnvioTotal = costoEnvioPorBulto * bultos;
         const descripcion = document.getElementById('stockDescripcion').value;
         const fechaIngreso = document.getElementById('stockFecha').value;
         const clienteId = document.getElementById('stockCliente').value;
 
-        if (isNaN(totalKg) || totalKg <= 0) {
+        if (isNaN(totalKg) |
+
+| totalKg <= 0) {
             alert('Error: Verifique la cantidad de bultos y los kg por bulto.');
             return;
         }
@@ -517,7 +511,9 @@
         
         if (!clienteId) { alert('Error: Debe seleccionar un cliente.'); return; }
         if (!stockLoteId) { alert('Error: Debe seleccionar un lote de stock.'); return; }
-        if (isNaN(kgATostar) || kgATostar <= 0) { alert('Error: La cantidad de Kg debe ser un número positivo.'); return; }
+        if (isNaN(kgATostar) |
+
+| kgATostar <= 0) { alert('Error: La cantidad de Kg debe ser un número positivo.'); return; }
 
         const stockIndex = stock.findIndex(s => s.id == stockLoteId);
         if (stockIndex === -1) { alert('Error: El lote de stock no es válido.'); return; }
@@ -529,10 +525,15 @@
         const tipoCambio = parseFloat(document.getElementById('ventaTipoCambio').value);
         const fechaVenta = document.getElementById('ventaFecha').value;
         const bultos = parseInt(document.getElementById('ventaBultos').value);
-        const costoEnvioPorBulto = parseFloat(document.getElementById('ventaCostoEnvioPorBulto').value) || 0;
+        const costoEnvioPorBulto = parseFloat(document.getElementById('ventaCostoEnvioPorBulto').value) |
+
+| 0;
         const costoEnvioDespachoTotal = costoEnvioPorBulto * bultos;
         
-        if(isNaN(precioUSD) || isNaN(tipoCambio) || isNaN(bultos) || !fechaVenta) { alert("Error: Por favor, complete todos los campos de la venta."); return; }
+        if(isNaN(precioUSD) |
+
+| isNaN(tipoCambio) |
+| isNaN(bultos) ||!fechaVenta) { alert("Error: Por favor, complete todos los campos de la venta."); return; }
 
         const nuevaVenta = { id: Date.now(), clienteId, fecha: fechaVenta, kg: kgATostar, precioUSD, tipoCambio, bultos, totalARS: kgATostar * precioUSD * tipoCambio, stockIdDescontado: stockLoteId };
         
@@ -582,7 +583,9 @@
         
         if(type === 'cliente') {
             const clienteAEliminar = clientes[index];
-            const transaccionesAsociadas = ventas.some(v => v.clienteId == clienteAEliminar.id) || 
+            const transaccionesAsociadas = ventas.some(v => v.clienteId == clienteAEliminar.id) |
+
+| 
                                            stock.some(s => s.clienteId == clienteAEliminar.id) ||
                                            cobros.some(c => c.clienteId == clienteAEliminar.id) ||
                                            logistica.some(l => l.clienteId == clienteAEliminar.id);
@@ -606,7 +609,7 @@
         let y = 15;
 
         pdf.setFontSize(18); pdf.text('Reporte de Stock de Lote', 105, y, { align: 'center' }); y += 10;
-        pdf.setFontSize(12); pdf.text(`Cliente: ${cliente ? cliente.nombre : 'N/A'}`, 14, y); y += 7;
+        pdf.setFontSize(12); pdf.text(`Cliente: ${cliente? cliente.nombre : 'N/A'}`, 14, y); y += 7;
         pdf.text(`Café: ${item.descripcion}`, 14, y); y += 15;
         pdf.setFontSize(14); pdf.text('Movimientos del Lote', 14, y); y += 10;
         pdf.setFontSize(10);
@@ -619,7 +622,7 @@
         pdf.setFontSize(14); pdf.setFont('helvetica', 'bold');
         pdf.text('Stock Restante:', 14, y);
         pdf.text(`${item.kgActuales.toFixed(2)} Kg`, 190, y, { align: 'right' });
-        pdf.save(`stock_lote_${cliente ? cliente.nombre.replace(' ','_') : ''}_${item.id}.pdf`);
+        pdf.save(`stock_lote_${cliente? cliente.nombre.replace(' ','_') : ''}_${item.id}.pdf`);
     };
     
     window.generateRoastOrderPdf = (saleIndex) => {
@@ -629,7 +632,7 @@
         const cliente = clientes.find(c => c.id == sale.clienteId);
         const stockLote = stock.find(s => s.id == sale.stockIdDescontado);
 
-        if (!cliente || !stockLote) { alert('No se pudieron encontrar los detalles del cliente o del lote de stock.'); return; }
+        if (!cliente ||!stockLote) { alert('No se pudieron encontrar los detalles del cliente o del lote de stock.'); return; }
 
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF();
@@ -651,7 +654,9 @@
     window.generateConsolidatedStockPdf = (clienteId) => {
         const cliente = clientes.find(c => c.id == clienteId);
         const stockCliente = stock.filter(s => s.clienteId == clienteId && s.kgActuales > 0.001);
-        if (!cliente || stockCliente.length === 0) { alert('Este cliente no tiene stock para reportar.'); return; }
+        if (!cliente |
+
+| stockCliente.length === 0) { alert('Este cliente no tiene stock para reportar.'); return; }
 
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF();
@@ -680,11 +685,7 @@
         const cliente = clientes.find(c => c.id == clienteId);
         if (!cliente) return;
 
-        const transacciones = [
-            ...ventas.filter(v => v.clienteId == clienteId).map(v => ({...v, tipo: 'Venta', debito: v.totalARS, credito: 0, concepto: `Tueste ${v.kg} Kg` })),
-            ...cobros.filter(c => c.clienteId == clienteId).map(c => ({...c, tipo: 'Cobro', debito: 0, credito: c.monto, concepto: 'Pago recibido' })),
-            ...logistica.filter(l => l.clienteId == clienteId).map(l => ({...l, tipo: 'Logística', debito: l.monto, credito: 0, concepto: l.descripcion }))
-        ].sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+        const transacciones =.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
 
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF();
@@ -707,8 +708,8 @@
             const fechaFormateada = new Date(t.fecha + 'T00:00:00').toLocaleDateString('es-AR');
             pdf.text(fechaFormateada, 14, y);
             pdf.text(t.concepto, 40, y);
-            pdf.text(t.debito > 0 ? formatCurrency(t.debito) : '', 130, y, { align: 'right' });
-            pdf.text(t.credito > 0 ? formatCurrency(t.credito) : '', 160, y, { align: 'right' });
+            pdf.text(t.debito > 0? formatCurrency(t.debito) : '', 130, y, { align: 'right' });
+            pdf.text(t.credito > 0? formatCurrency(t.credito) : '', 160, y, { align: 'right' });
             pdf.text(formatCurrency(saldo), 190, y, { align: 'right' });
             y += 7;
         });
@@ -737,6 +738,9 @@
 </script>
 </body>
 </html>
+
+
+
 
 
 
