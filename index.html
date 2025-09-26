@@ -142,6 +142,11 @@
         <!-- MODULO VENTAS -->
         <div id="page-ventas" class="page active">
             <h2>🐧 Módulo de Ventas</h2>
+            <div class="card" id="installCard" style="display: none;">
+                <h3>Instalar Aplicación</h3>
+                <p>Instala Fazon Penguin en tu celular para un acceso rápido y uso sin conexión.</p>
+                <button id="installBtn" class="btn-success">Instalar</button>
+            </div>
             <div class="card">
                 <h3>Nueva Venta de Tueste</h3>
                 <form id="formVenta">
@@ -279,6 +284,30 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+    // --- PWA Install Button Logic ---
+    let deferredPrompt;
+    const installCard = document.getElementById('installCard');
+    const installBtn = document.getElementById('installBtn');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        installCard.style.display = 'block';
+    });
+
+    installBtn.addEventListener('click', (e) => {
+        installCard.style.display = 'none';
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+                console.log('User accepted the A2HS prompt');
+            } else {
+                console.log('User dismissed the A2HS prompt');
+            }
+            deferredPrompt = null;
+        });
+    });
+
     // --- NAVEGACIÓN ---
     const navItems = document.querySelectorAll('.nav-item');
     const pages = document.querySelectorAll('.page');
@@ -708,5 +737,7 @@
 </script>
 </body>
 </html>
+
+
 
 
