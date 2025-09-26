@@ -43,10 +43,7 @@
             padding-bottom: 80px; /* Space for bottom nav */
         }
 
-        .content {
-            padding: 20px;
-        }
-
+        .content { padding: 20px; }
         .page { display: none; }
         .page.active { display: block; animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -59,11 +56,7 @@
             margin-bottom: 20px;
         }
 
-        h2, h3 {
-            margin-top: 0;
-            font-weight: 600;
-        }
-
+        h2, h3 { margin-top: 0; font-weight: 600; }
         input, select, button {
             width: 100%;
             padding: 14px;
@@ -74,22 +67,22 @@
             font-size: 16px;
             font-family: 'Poppins', sans-serif;
         }
-
-        select:disabled {
-            background-color: #e5e7eb;
-        }
-
+        select:disabled { background-color: #e5e7eb; }
         button {
             cursor: pointer;
             color: white;
             border: none;
             font-weight: 500;
             background-color: var(--accent-color);
+            transition: opacity 0.2s;
         }
+        button:hover { opacity: 0.9; }
         
         .btn-success { background-color: var(--success-color); }
         .btn-danger { background-color: var(--danger-color); }
+        .btn-warning { background-color: var(--warning-color); }
         .btn-pdf { background-color: var(--secondary-text); }
+        .btn-small { padding: 6px 10px; font-size: 12px; margin: 0 4px 0 0; width: auto; }
 
         table {
             width: 100%;
@@ -104,25 +97,19 @@
         }
         th { font-weight: 600; }
         .text-right { text-align: right; }
+        .actions-cell { width: 1%; white-space: nowrap; }
 
-        /* Bottom Navigation */
         .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
+            position: fixed; bottom: 0; left: 0; right: 0;
             display: flex;
             background-color: var(--nav-bg);
             box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
             z-index: 1000;
         }
         .nav-item {
-            flex: 1;
-            padding: 10px 0;
-            text-align: center;
-            color: var(--nav-text);
-            cursor: pointer;
-            font-size: 12px;
+            flex: 1; padding: 10px 0;
+            text-align: center; color: var(--nav-text);
+            cursor: pointer; font-size: 12px;
             transition: background-color 0.2s;
         }
         .nav-item.icon { font-size: 24px; }
@@ -130,7 +117,6 @@
             background-color: var(--nav-active-bg);
             color: var(--nav-active-text);
         }
-
     </style>
 </head>
 <body>
@@ -138,11 +124,6 @@
     <main class="content">
         <div id="page-ventas" class="page active">
             <h2>🐧 Módulo de Ventas</h2>
-            <div class="card" id="installCard" style="display: none;">
-                <h3>Instalar Aplicación</h3>
-                <p>Instala Fazon Penguin en tu celular para un acceso rápido y uso sin conexión.</p>
-                <button id="installBtn" class="btn-success">Instalar</button>
-            </div>
             <div class="card">
                 <h3>Nueva Venta de Tueste</h3>
                 <form id="formVenta">
@@ -182,23 +163,22 @@
                     <table><thead><tr><th>Cliente</th><th class="text-right">Saldo Deudor (ARS)</th></tr></thead><tbody id="tablaCuentasCorrientes"></tbody></table>
                 </div>
             </div>
-            <div class="card">
-                <h3>Reporte de Cuenta Corriente</h3>
-                <p>Genere un PDF con el historial de ventas, cobros y saldo deudor de un cliente.</p>
-                <form id="formReporteCuentaCorriente">
-                    <select id="reporteCuentaCorrienteCliente" required><option value="">-- Seleccionar Cliente --</option></select>
-                    <button type="submit" class="btn-pdf">Generar PDF de Saldo</button>
-                </form>
+             <div class="card">
+                <h3>Historial de Cobros</h3>
+                <div style="overflow-x:auto;">
+                    <table><thead><tr><th>Fecha</th><th>Cliente</th><th>Monto</th><th>Acciones</th></tr></thead><tbody id="tablaCobros"></tbody></table>
+                </div>
             </div>
         </div>
 
         <div id="page-clientes" class="page">
             <h2>Módulo de Clientes</h2>
             <div class="card">
-                <h3>Agregar Cliente</h3>
+                <h3 id="formClienteTitle">Agregar Cliente</h3>
                 <form id="formCliente">
                     <input type="text" id="clienteNombre" placeholder="Nombre del cliente" required>
-                    <button type="submit">Guardar Cliente</button>
+                    <button type="submit" id="btnGuardarCliente">Guardar Cliente</button>
+                    <button type="button" id="btnCancelarEdicion" class="btn-warning" style="display:none;">Cancelar Edición</button>
                 </form>
             </div>
             <div class="card">
@@ -211,9 +191,8 @@
             <h2>Módulo de Logística</h2>
             <div class="card">
                 <h3>Historial de Costos de Envío</h3>
-                <p>Registro de costos de envíos de ingreso (desde Stock) y de despacho (desde Ventas).</p>
                 <div style="overflow-x:auto;">
-                    <table><thead><tr><th>Fecha</th><th>Cliente</th><th>Concepto</th><th class="text-right">Monto</th></tr></thead><tbody id="tablaLogistica"></tbody></table>
+                    <table><thead><tr><th>Fecha</th><th>Cliente</th><th>Concepto</th><th class="text-right">Monto</th><th>Acciones</th></tr></thead><tbody id="tablaLogistica"></tbody></table>
                 </div>
             </div>
         </div>
@@ -239,17 +218,6 @@
                 </div>
             </div>
         </div>
-
-        <div id="page-reportes" class="page">
-            <h2>Módulo de Reportes</h2>
-            <div class="card">
-                <h3>Generar Reporte de Stock por Cliente</h3>
-                <form id="formReporteStock">
-                    <select id="reporteCliente" required><option value="">-- Seleccionar Cliente --</option></select>
-                    <button type="submit" class="btn-pdf">Generar PDF</button>
-                </form>
-            </div>
-        </div>
     </main>
 
     <nav class="bottom-nav">
@@ -258,62 +226,12 @@
         <div class="nav-item" data-page="clientes"><div class="icon">👥</div><div>Clientes</div></div>
         <div class="nav-item" data-page="logistica"><div class="icon">🚚</div><div>Logística</div></div>
         <div class="nav-item" data-page="stock"><div class="icon">📦</div><div>Stock</div></div>
-        <div class="nav-item" data-page="reportes"><div class="icon">📊</div><div>Reportes</div></div>
     </nav>
     
 <script>
-    // --- PWA Service Worker Registration ---
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('sw.js').then(registration => {
-                console.log('ServiceWorker registration successful with scope: ', registration.scope);
-            }, err => {
-                console.log('ServiceWorker registration failed: ', err);
-            });
-        });
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-    // --- PWA Install Button Logic ---
-    let deferredPrompt;
-    const installCard = document.getElementById('installCard');
-    const installBtn = document.getElementById('installBtn');
-
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        installCard.style.display = 'block';
-    });
-
-    installBtn.addEventListener('click', (e) => {
-        installCard.style.display = 'none';
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then((choiceResult) => {
-            if (choiceResult.outcome === 'accepted') {
-                console.log('User accepted the A2HS prompt');
-            } else {
-                console.log('User dismissed the A2HS prompt');
-            }
-            deferredPrompt = null;
-        });
-    });
-
-    // --- NAVEGACIÓN ---
-    const navItems = document.querySelectorAll('.nav-item');
-    const pages = document.querySelectorAll('.page');
-    
-    function showPage(pageId) {
-        pages.forEach(p => p.classList.remove('active'));
-        document.getElementById(`page-${pageId}`).classList.add('active');
-        navItems.forEach(n => n.classList.remove('active'));
-        document.querySelector(`.nav-item[data-page="${pageId}"]`).classList.add('active');
-    }
-
-    navItems.forEach(item => {
-        item.addEventListener('click', () => showPage(item.dataset.page));
-    });
-
-    // --- BASE DE DATOS LOCAL (CORREGIDO) ---
+document.addEventListener('DOMContentLoaded', () => {
+    // --- STATE & DB ---
+    let editingState = { type: null, index: -1 };
     let clientes = JSON.parse(localStorage.getItem('fazon_clientes')) || [];
     let stock = JSON.parse(localStorage.getItem('fazon_stock')) || [];
     let ventas = JSON.parse(localStorage.getItem('fazon_ventas')) || [];
@@ -328,92 +246,170 @@
         localStorage.setItem('fazon_logistica', JSON.stringify(logistica));
     };
 
+    // --- NAVIGATION ---
+    const navItems = document.querySelectorAll('.nav-item');
+    const pages = document.querySelectorAll('.page');
+    function showPage(pageId) {
+        pages.forEach(p => p.classList.remove('active'));
+        document.getElementById(`page-${pageId}`).classList.add('active');
+        navItems.forEach(n => n.classList.remove('active'));
+        document.querySelector(`.nav-item[data-page="${pageId}"]`).classList.add('active');
+    }
+    navItems.forEach(item => item.addEventListener('click', () => showPage(item.dataset.page)));
+
     // --- HELPERS ---
     const formatCurrency = (number) => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(number);
+    const formatDate = (dateString) => new Date(dateString + 'T00:00:00').toLocaleDateString('es-AR');
 
-    // --- RENDERIZADO UI ---
+    // --- UI RENDERING ---
     function renderUI() {
-        // Populate selects
-        const selects = ['ventaCliente', 'cobroCliente', 'stockCliente', 'reporteCliente', 'reporteCuentaCorrienteCliente'];
+        // Populate client selects
+        const selects = ['ventaCliente', 'cobroCliente', 'stockCliente'];
         selects.forEach(id => {
             const select = document.getElementById(id);
             if (!select) return;
             const selectedValue = select.value;
             select.innerHTML = `<option value="">-- Seleccionar Cliente --</option>`;
             clientes.forEach(c => select.add(new Option(c.nombre, c.id)));
-            if (select.querySelector(`option[value="${selectedValue}"]`)) {
-                 select.value = selectedValue;
-            }
+            if (clientes.some(c => c.id == selectedValue)) select.value = selectedValue;
         });
 
-        const stockSelect = document.getElementById('ventaStockLote');
-        if(!document.getElementById('ventaCliente').value) {
-            stockSelect.disabled = true;
-            stockSelect.innerHTML = '<option value="">-- Primero seleccione un cliente --</option>';
-        }
-
         // Render Clientes
-        document.getElementById('tablaClientes').innerHTML = '';
+        const tablaClientes = document.getElementById('tablaClientes');
+        tablaClientes.innerHTML = '';
         clientes.forEach((c, i) => {
-            document.getElementById('tablaClientes').innerHTML += `<tr><td>${c.nombre}</td><td><button class="btn-danger" style="padding:5px 8px; font-size:12px;" onclick="deleteItem('cliente', ${i})">X</button></td></tr>`;
+            tablaClientes.innerHTML += `<tr>
+                <td>${c.nombre}</td>
+                <td class="actions-cell">
+                    <button class="btn-small btn-warning" onclick="editItem('cliente', ${i})">Editar</button>
+                    <button class="btn-small btn-danger" onclick="deleteItem('cliente', ${i})">X</button>
+                </td>
+            </tr>`;
         });
         
         // Render Stock
-        document.getElementById('tablaStock').innerHTML = '';
+        const tablaStock = document.getElementById('tablaStock');
+        tablaStock.innerHTML = '';
         stock.forEach((s, i) => {
             if (s.kgActuales > 0.001) {
                 const cliente = clientes.find(c => c.id == s.clienteId);
-                document.getElementById('tablaStock').innerHTML += `<tr><td>${cliente? cliente.nombre : 'N/A'}</td><td>${s.descripcion}</td><td>${s.kgActuales.toFixed(2)} Kg</td><td><button class="btn-pdf" style="padding:5px 8px; font-size:12px;" onclick="generateStockPdf(${i})">PDF</button></td></tr>`;
+                tablaStock.innerHTML += `<tr>
+                    <td>${cliente?.nombre || 'N/A'}</td>
+                    <td>${s.descripcion}</td>
+                    <td>${s.kgActuales.toFixed(2)} Kg</td>
+                    <td class="actions-cell">
+                        <button class="btn-small btn-warning" onclick="editItem('stock', ${i})">Editar</button>
+                        <button class="btn-small btn-danger" onclick="deleteItem('stock', ${i})">X</button>
+                    </td>
+                </tr>`;
             }
         });
 
         // Render Ventas
-        document.getElementById('tablaVentas').innerHTML = '';
-        ventas.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)).forEach((v, i) => {
-             const originalIndex = ventas.indexOf(v);
+        const tablaVentas = document.getElementById('tablaVentas');
+        tablaVentas.innerHTML = '';
+        ventas.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)).forEach(v => {
+            const originalIndex = ventas.indexOf(v);
             const cliente = clientes.find(c => c.id == v.clienteId);
-            document.getElementById('tablaVentas').innerHTML += `<tr>
-                <td>${new Date(v.fecha + 'T00:00:00').toLocaleDateString('es-AR')}</td>
-                <td>${cliente? cliente.nombre : 'N/A'}</td>
+            tablaVentas.innerHTML += `<tr>
+                <td>${formatDate(v.fecha)}</td>
+                <td>${cliente?.nombre || 'N/A'}</td>
                 <td>${v.kg} Kg</td>
                 <td class="text-right">${formatCurrency(v.totalARS)}</td>
-                <td><button class="btn-pdf" style="padding:5px 8px; font-size:12px;" onclick="generateRoastOrderPdf(${originalIndex})">Orden</button></td>
+                <td class="actions-cell">
+                    <button class="btn-small btn-danger" onclick="deleteItem('venta', ${originalIndex})">Borrar</button>
+                </td>
             </tr>`;
         });
 
         // Render Logistica
-        document.getElementById('tablaLogistica').innerHTML = '';
+        const tablaLogistica = document.getElementById('tablaLogistica');
+        tablaLogistica.innerHTML = '';
         logistica.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)).forEach(l => {
+            const originalIndex = logistica.indexOf(l);
             const cliente = clientes.find(c => c.id == l.clienteId);
-            document.getElementById('tablaLogistica').innerHTML += `<tr><td>${new Date(l.fecha + 'T00:00:00').toLocaleDateString('es-AR')}</td><td>${cliente? cliente.nombre : 'N/A'}</td><td>${l.descripcion}</td><td class="text-right">${formatCurrency(l.monto)}</td></tr>`;
+            tablaLogistica.innerHTML += `<tr>
+                <td>${formatDate(l.fecha)}</td>
+                <td>${cliente?.nombre || 'N/A'}</td>
+                <td>${l.descripcion}</td>
+                <td class="text-right">${formatCurrency(l.monto)}</td>
+                <td class="actions-cell">
+                     <button class="btn-small btn-danger" onclick="deleteItem('logistica', ${originalIndex})">Borrar</button>
+                </td>
+            </tr>`;
+        });
+        
+        // Render Cobros
+        const tablaCobros = document.getElementById('tablaCobros');
+        tablaCobros.innerHTML = '';
+        cobros.sort((a,b) => new Date(b.fecha) - new Date(a.fecha)).forEach((cob, i) => {
+            const originalIndex = cobros.indexOf(cob);
+            const cliente = clientes.find(c => c.id == cob.clienteId);
+            tablaCobros.innerHTML += `<tr>
+                <td>${formatDate(cob.fecha)}</td>
+                <td>${cliente?.nombre || 'N/A'}</td>
+                <td>${formatCurrency(cob.monto)}</td>
+                <td class="actions-cell">
+                    <button class="btn-small btn-danger" onclick="deleteItem('cobro', ${originalIndex})">Borrar</button>
+                </td>
+            </tr>`;
         });
 
         // Render Cuentas Corrientes
-        document.getElementById('tablaCuentasCorrientes').innerHTML = '';
+        const tablaCuentasCorrientes = document.getElementById('tablaCuentasCorrientes');
+        tablaCuentasCorrientes.innerHTML = '';
         clientes.forEach(c => {
             const totalVentas = ventas.filter(v => v.clienteId == c.id).reduce((sum, v) => sum + v.totalARS, 0);
             const totalLogistica = logistica.filter(l => l.clienteId == c.id).reduce((sum, l) => sum + l.monto, 0);
             const totalCobros = cobros.filter(cob => cob.clienteId == c.id).reduce((sum, cob) => sum + cob.monto, 0);
             const saldo = totalVentas + totalLogistica - totalCobros;
-            if (saldo > 0.01 || saldo < -0.01) {
-                document.getElementById('tablaCuentasCorrientes').innerHTML += `<tr><td>${c.nombre}</td><td class="text-right" style="color:white; padding: 5px; background-color:${saldo > 0 ? 'var(--danger-color)' : 'var(--success-color)'};">${formatCurrency(saldo)}</td></tr>`;
+            if (Math.abs(saldo) > 0.01) {
+                tablaCuentasCorrientes.innerHTML += `<tr>
+                    <td>${c.nombre}</td>
+                    <td class="text-right" style="color:white; padding: 5px; background-color:${saldo > 0 ? 'var(--danger-color)' : 'var(--success-color)'};">
+                        ${formatCurrency(saldo)}
+                    </td>
+                </tr>`;
             }
         });
     }
 
-    // --- LÓGICA DE FORMULARIOS ---
+    // --- FORM LOGIC & EVENT LISTENERS ---
 
-    // Clientes
-    document.getElementById('formCliente').addEventListener('submit', e => {
+    // Clientes Form
+    const formCliente = document.getElementById('formCliente');
+    const formClienteTitle = document.getElementById('formClienteTitle');
+    const clienteNombreInput = document.getElementById('clienteNombre');
+    const btnGuardarCliente = document.getElementById('btnGuardarCliente');
+    const btnCancelarEdicion = document.getElementById('btnCancelarEdicion');
+
+    const resetClienteForm = () => {
+        editingState = { type: null, index: -1 };
+        formClienteTitle.textContent = 'Agregar Cliente';
+        btnGuardarCliente.textContent = 'Guardar Cliente';
+        btnCancelarEdicion.style.display = 'none';
+        formCliente.reset();
+    };
+
+    formCliente.addEventListener('submit', e => {
         e.preventDefault();
-        clientes.push({ id: Date.now(), nombre: document.getElementById('clienteNombre').value });
+        const nombre = clienteNombreInput.value.trim();
+        if (!nombre) return;
+
+        if (editingState.type === 'cliente') {
+            clientes[editingState.index].nombre = nombre;
+            alert('Cliente actualizado!');
+        } else {
+            clientes.push({ id: Date.now(), nombre });
+            alert('Cliente agregado!');
+        }
+        resetClienteForm();
         saveData();
         renderUI();
-        e.target.reset();
-        alert('Cliente agregado!');
     });
-    
-    // Stock
+    btnCancelarEdicion.addEventListener('click', resetClienteForm);
+
+    // Stock Form
     document.getElementById('formStock').addEventListener('submit', e => {
         e.preventDefault();
         const kgPorBulto = parseFloat(document.getElementById('stockKgPorBulto').value);
@@ -421,45 +417,39 @@
         const totalKg = kgPorBulto * bultos;
         const costoEnvioPorBulto = parseFloat(document.getElementById('stockCostoEnvioPorBulto').value) || 0;
         const costoEnvioTotal = costoEnvioPorBulto * bultos;
-        const descripcion = document.getElementById('stockDescripcion').value;
-        const fechaIngreso = document.getElementById('stockFecha').value;
         const clienteId = document.getElementById('stockCliente').value;
 
-        if (isNaN(totalKg) || totalKg <= 0) {
-            alert('Error: Verifique la cantidad de bultos y los kg por bulto.');
+        if (!clienteId || isNaN(totalKg) || totalKg <= 0) {
+            alert('Error: Verifique los datos ingresados.');
             return;
         }
 
         const nuevoLote = {
             id: Date.now(),
             clienteId: clienteId,
-            fechaIngreso: fechaIngreso,
-            descripcion: descripcion,
+            fechaIngreso: document.getElementById('stockFecha').value,
+            descripcion: document.getElementById('stockDescripcion').value,
             kgIniciales: totalKg,
-            bultosIniciales: bultos,
             kgActuales: totalKg,
-            movimientos: [{ fecha: fechaIngreso, tipo: 'Ingreso', kg: totalKg }]
+            movimientos: [{ fecha: document.getElementById('stockFecha').value, tipo: 'Ingreso', kg: totalKg }]
         };
         stock.push(nuevoLote);
 
         if (costoEnvioTotal > 0) {
             logistica.push({
-                id: Date.now(),
-                clienteId: clienteId,
-                fecha: fechaIngreso,
-                descripcion: `Envío Ingreso: ${descripcion}`,
-                monto: costoEnvioTotal,
-                loteId: nuevoLote.id
+                id: Date.now() + 1, clienteId, fecha: nuevoLote.fechaIngreso,
+                descripcion: `Envío Ingreso: ${nuevoLote.descripcion}`,
+                monto: costoEnvioTotal, loteId: nuevoLote.id
             });
         }
         
         saveData();
         renderUI();
         e.target.reset();
-        alert(`Stock ingresado: ${totalKg.toFixed(2)} Kg en total.`);
+        alert(`Stock ingresado: ${totalKg.toFixed(2)} Kg.`);
     });
 
-    // Cobros
+    // Cobros Form
     document.getElementById('formCobro').addEventListener('submit', e => {
         e.preventDefault();
         cobros.push({
@@ -474,21 +464,16 @@
         alert('Cobro registrado!');
     });
 
-    // Ventas
-    document.getElementById('ventaCliente').addEventListener('change', () => {
-        const clienteId = document.getElementById('ventaCliente').value;
+    // Ventas Form
+    document.getElementById('ventaCliente').addEventListener('change', (e) => {
+        const clienteId = e.target.value;
         const stockSelect = document.getElementById('ventaStockLote');
-        
         stockSelect.innerHTML = '<option value="">-- Seleccione un lote de café --</option>';
-        
         if (!clienteId) {
             stockSelect.disabled = true;
-            stockSelect.innerHTML = '<option value="">-- Primero seleccione un cliente --</option>';
             return;
         }
-
         const stockDisponible = stock.filter(s => s.clienteId == clienteId && s.kgActuales > 0.001);
-
         if (stockDisponible.length === 0) {
             stockSelect.disabled = true;
             stockSelect.innerHTML = '<option value="">-- No hay stock disponible --</option>';
@@ -503,242 +488,128 @@
 
     document.getElementById('formVenta').addEventListener('submit', e => {
         e.preventDefault();
-
-        const clienteId = document.getElementById('ventaCliente').value;
-        const stockLoteId = document.getElementById('ventaStockLote').value;
         const kgATostar = parseFloat(document.getElementById('ventaKg').value);
+        const stockLoteId = document.getElementById('ventaStockLote').value;
+        const loteSeleccionado = stock.find(s => s.id == stockLoteId);
         
-        if (!clienteId) { alert('Error: Debe seleccionar un cliente.'); return; }
-        if (!stockLoteId) { alert('Error: Debe seleccionar un lote de stock.'); return; }
-        if (isNaN(kgATostar) || kgATostar <= 0) { alert('Error: La cantidad de Kg debe ser un número positivo.'); return; }
-
-        const stockIndex = stock.findIndex(s => s.id == stockLoteId);
-        if (stockIndex === -1) { alert('Error: El lote de stock no es válido.'); return; }
-        const loteSeleccionado = stock[stockIndex];
-
+        if (!loteSeleccionado || isNaN(kgATostar) || kgATostar <= 0) { alert('Error: Verifique los datos.'); return; }
         if (kgATostar > loteSeleccionado.kgActuales) { alert(`Error: Stock insuficiente. Disponible: ${loteSeleccionado.kgActuales.toFixed(2)} Kg.`); return; }
 
-        const precioUSD = parseFloat(document.getElementById('ventaPrecioUSD').value);
-        const tipoCambio = parseFloat(document.getElementById('ventaTipoCambio').value);
-        const fechaVenta = document.getElementById('ventaFecha').value;
         const bultos = parseInt(document.getElementById('ventaBultos').value);
         const costoEnvioPorBulto = parseFloat(document.getElementById('ventaCostoEnvioPorBulto').value) || 0;
         const costoEnvioDespachoTotal = costoEnvioPorBulto * bultos;
+        const precioUSD = parseFloat(document.getElementById('ventaPrecioUSD').value);
+        const tipoCambio = parseFloat(document.getElementById('ventaTipoCambio').value);
         
-        if(isNaN(precioUSD) || isNaN(tipoCambio) || isNaN(bultos) || !fechaVenta) { alert("Error: Por favor, complete todos los campos de la venta."); return; }
-
-        const nuevaVenta = { id: Date.now(), clienteId, fecha: fechaVenta, kg: kgATostar, precioUSD, tipoCambio, bultos, totalARS: kgATostar * precioUSD * tipoCambio, stockIdDescontado: stockLoteId };
+        const nuevaVenta = {
+            id: Date.now(), clienteId: document.getElementById('ventaCliente').value,
+            fecha: document.getElementById('ventaFecha').value, kg: kgATostar, precioUSD, tipoCambio, bultos,
+            totalARS: kgATostar * precioUSD * tipoCambio, stockIdDescontado: stockLoteId
+        };
         
         loteSeleccionado.kgActuales -= kgATostar;
-        loteSeleccionado.movimientos.push({ fecha: fechaVenta, tipo: 'Venta Tueste', kg: -kgATostar });
-        
+        loteSeleccionado.movimientos.push({ fecha: nuevaVenta.fecha, tipo: 'Venta Tueste', kg: -kgATostar });
         ventas.push(nuevaVenta);
 
         if (costoEnvioDespachoTotal > 0) {
             logistica.push({
-                id: Date.now() + 1, // Avoid collision
-                clienteId: clienteId,
-                fecha: fechaVenta,
-                descripcion: `Envío Despacho Tueste`,
-                monto: costoEnvioDespachoTotal,
-                ventaId: nuevaVenta.id
+                id: Date.now() + 1, clienteId: nuevaVenta.clienteId, fecha: nuevaVenta.fecha,
+                descripcion: `Envío Despacho Tueste`, monto: costoEnvioDespachoTotal, ventaId: nuevaVenta.id
             });
         }
         
         saveData();
         renderUI();
-        
         e.target.reset();
         document.getElementById('ventaStockLote').disabled = true;
         document.getElementById('ventaStockLote').innerHTML = '<option value="">-- Primero seleccione un cliente --</option>';
         alert('Venta registrada con éxito!');
     });
 
-    // Reportes
-    document.getElementById('formReporteStock').addEventListener('submit', e => {
-        e.preventDefault();
-        const clienteId = document.getElementById('reporteCliente').value;
-        if (!clienteId) { alert('Por favor, seleccione un cliente.'); return; }
-        generateConsolidatedStockPdf(clienteId);
-    });
-
-    document.getElementById('formReporteCuentaCorriente').addEventListener('submit', e => {
-        e.preventDefault();
-        const clienteId = document.getElementById('reporteCuentaCorrienteCliente').value;
-        if (!clienteId) { alert('Por favor, seleccione un cliente.'); return; }
-        generateCuentaCorrientePdf(clienteId);
-    });
-
-    // --- ACCIONES Y PDF ---
-    window.deleteItem = (type, index) => {
-        if (!confirm(`¿Seguro que quieres eliminar este ${type}?`)) return;
-        
-        if(type === 'cliente') {
-            const clienteAEliminar = clientes[index];
-            const transaccionesAsociadas = ventas.some(v => v.clienteId == clienteAEliminar.id) ||
-                                          stock.some(s => s.clienteId == clienteAEliminar.id) ||
-                                          cobros.some(c => c.clienteId == clienteAEliminar.id) ||
-                                          logistica.some(l => l.clienteId == clienteAEliminar.id);
-
-            if (transaccionesAsociadas) {
-                if (!confirm(`¡Atención! Este cliente tiene transacciones asociadas. ¿Estás seguro de que quieres eliminarlo?`)) {
-                    return;
-                }
+    // --- ACTIONS (EDIT / DELETE) ---
+    window.editItem = (type, index) => {
+        if (type === 'cliente') {
+            editingState = { type: 'cliente', index };
+            const cliente = clientes[index];
+            formClienteTitle.textContent = 'Editando Cliente';
+            clienteNombreInput.value = cliente.nombre;
+            btnGuardarCliente.textContent = 'Actualizar Cliente';
+            btnCancelarEdicion.style.display = 'block';
+            showPage('clientes');
+            clienteNombreInput.focus();
+        }
+        if (type === 'stock') {
+            const item = stock[index];
+            const nuevaDesc = prompt("Editar descripción del café:", item.descripcion);
+            if (nuevaDesc) {
+                item.descripcion = nuevaDesc;
+                saveData();
+                renderUI();
+                alert('Stock actualizado.');
             }
-            clientes.splice(index, 1);
+        }
+    };
+
+    window.deleteItem = (type, index) => {
+        let item, name;
+        switch(type) {
+            case 'cliente':
+                item = clientes[index];
+                name = item.nombre;
+                if (confirm(`¿Seguro que quieres eliminar al cliente "${name}"? Se borrarán todas sus transacciones asociadas.`)) {
+                    const id = item.id;
+                    clientes.splice(index, 1);
+                    ventas = ventas.filter(v => v.clienteId != id);
+                    stock = stock.filter(s => s.clienteId != id);
+                    cobros = cobros.filter(c => c.clienteId != id);
+                    logistica = logistica.filter(l => l.clienteId != id);
+                }
+                break;
+            case 'stock':
+                item = stock[index];
+                name = item.descripcion;
+                if (confirm(`¿Seguro que quieres eliminar el lote "${name}"? Las ventas asociadas NO se revertirán.`)) {
+                    logistica = logistica.filter(l => l.loteId !== item.id);
+                    stock.splice(index, 1);
+                }
+                break;
+            case 'venta':
+                item = ventas[index];
+                if (confirm(`¿Seguro que quieres eliminar esta venta? Los ${item.kg} Kg se devolverán al stock.`)) {
+                    // Restore stock
+                    const lote = stock.find(s => s.id == item.stockIdDescontado);
+                    if (lote) {
+                        lote.kgActuales += item.kg;
+                        // Remove movement record
+                        lote.movimientos = lote.movimientos.filter(m => !(m.tipo === 'Venta Tueste' && m.kg === -item.kg && m.fecha === item.fecha));
+                    }
+                    // Remove associated logistics
+                    logistica = logistica.filter(l => l.ventaId !== item.id);
+                    // Remove sale
+                    ventas.splice(index, 1);
+                }
+                break;
+            case 'cobro':
+                item = cobros[index];
+                if (confirm(`¿Seguro que quieres eliminar este cobro de ${formatCurrency(item.monto)}?`)) {
+                    cobros.splice(index, 1);
+                }
+                break;
+            case 'logistica':
+                 item = logistica[index];
+                 if (confirm(`¿Seguro que quieres eliminar este costo de logística de ${formatCurrency(item.monto)}?`)) {
+                    logistica.splice(index, 1);
+                }
+                break;
         }
         saveData();
         renderUI();
     };
 
-    window.generateStockPdf = (stockIndex) => {
-        const item = stock[stockIndex];
-        const cliente = clientes.find(c => c.id == item.clienteId);
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF();
-        let y = 15;
-
-        pdf.setFontSize(18); pdf.text('Reporte de Stock de Lote', 105, y, { align: 'center' }); y += 10;
-        pdf.setFontSize(12); pdf.text(`Cliente: ${cliente? cliente.nombre : 'N/A'}`, 14, y); y += 7;
-        pdf.text(`Café: ${item.descripcion}`, 14, y); y += 15;
-        pdf.setFontSize(14); pdf.text('Movimientos del Lote', 14, y); y += 10;
-        pdf.setFontSize(10);
-        item.movimientos.forEach(m => {
-            pdf.text(`${new Date(m.fecha + 'T00:00:00').toLocaleDateString('es-AR')}: ${m.tipo}`, 16, y);
-            pdf.text(`${m.kg.toFixed(2)} Kg`, 190, y, { align: 'right' });
-            y += 7;
-        });
-        y += 5; pdf.line(14, y, 196, y); y += 10;
-        pdf.setFontSize(14); pdf.setFont('helvetica', 'bold');
-        pdf.text('Stock Restante:', 14, y);
-        pdf.text(`${item.kgActuales.toFixed(2)} Kg`, 190, y, { align: 'right' });
-        pdf.save(`stock_lote_${cliente? cliente.nombre.replace(/\s/g,'_') : ''}_${item.id}.pdf`);
-    };
-    
-    window.generateRoastOrderPdf = (saleIndex) => {
-        const sale = ventas[saleIndex];
-        if (!sale) { alert('Venta no encontrada.'); return; }
-
-        const cliente = clientes.find(c => c.id == sale.clienteId);
-        const stockLote = stock.find(s => s.id == sale.stockIdDescontado);
-
-        if (!cliente || !stockLote) { alert('No se pudieron encontrar los detalles del cliente o del lote de stock.'); return; }
-
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF();
-        let y = 20;
-
-        pdf.setFontSize(22); pdf.setFont('helvetica', 'bold'); pdf.text('Orden de Tueste', 105, y, { align: 'center' }); y += 15;
-        pdf.setFontSize(12); pdf.setFont('helvetica', 'normal');
-        const fechaFormateada = new Date(sale.fecha + 'T00:00:00').toLocaleDateString('es-AR');
-        pdf.text(`Fecha: ${fechaFormateada}`, 14, y); y += 15;
-
-        pdf.setFontSize(14); pdf.text(`Cliente:`, 14, y); pdf.setFont('helvetica', 'bold'); pdf.text(cliente.nombre, 40, y); y += 10;
-        pdf.setFont('helvetica', 'normal'); pdf.text(`Café a Tostar:`, 14, y); pdf.setFont('helvetica', 'bold'); pdf.text(stockLote.descripcion, 45, y); y += 10;
-        pdf.setFont('helvetica', 'normal'); pdf.text(`Cantidad:`, 14, y); pdf.setFont('helvetica', 'bold'); pdf.text(`${sale.kg.toFixed(2)} Kg`, 40, y); y += 15;
-        pdf.setFont('helvetica', 'normal'); pdf.text(`Envasar en:`, 14, y); pdf.setFont('helvetica', 'bold'); pdf.text(`${sale.bultos} bulto(s)`, 45, y);
-
-        pdf.save(`orden_tueste_${cliente.nombre.replace(/\s/g,'_')}_${sale.fecha}.pdf`);
-    };
-
-    window.generateConsolidatedStockPdf = (clienteId) => {
-        const cliente = clientes.find(c => c.id == clienteId);
-        const stockCliente = stock.filter(s => s.clienteId == clienteId && s.kgActuales > 0.001);
-        if (!cliente || stockCliente.length === 0) { alert('Este cliente no tiene stock para reportar.'); return; }
-
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF();
-        let y = 15, totalKgCliente = 0;
-
-        pdf.setFontSize(18); pdf.text(`Reporte Consolidado de Stock`, 105, y, { align: 'center' }); y += 10;
-        pdf.setFontSize(14); pdf.text(`Cliente: ${cliente.nombre}`, 14, y); y += 15;
-        pdf.setFontSize(12); pdf.setFont('helvetica', 'bold');
-        pdf.text('Resumen de Lotes de Café Verde', 14, y); y += 10;
-        pdf.setFontSize(10);
-        stockCliente.forEach(item => {
-            pdf.setFont('helvetica', 'normal');
-            pdf.text(item.descripcion, 16, y);
-            pdf.text(`${item.kgActuales.toFixed(2)} Kg`, 190, y, { align: 'right' });
-            totalKgCliente += item.kgActuales;
-            y += 7;
-        });
-        y += 5; pdf.line(14, y, 196, y); y += 10;
-        pdf.setFontSize(14); pdf.setFont('helvetica', 'bold');
-        pdf.text('Total Stock Cliente:', 14, y);
-        pdf.text(`${totalKgCliente.toFixed(2)} Kg`, 190, y, { align: 'right' });
-        pdf.save(`stock_consolidado_${cliente.nombre.replace(/\s/g,'_')}.pdf`);
-    };
-
-    window.generateCuentaCorrientePdf = (clienteId) => {
-        const cliente = clientes.find(c => c.id == clienteId);
-        if (!cliente) return;
-
-        const transacciones = [
-            ...ventas.filter(v => v.clienteId == clienteId).map(v => ({ fecha: v.fecha, concepto: `Venta Tueste ${v.kg}Kg`, debito: v.totalARS, credito: 0 })),
-            ...logistica.filter(l => l.clienteId == clienteId).map(l => ({ fecha: l.fecha, concepto: l.descripcion, debito: l.monto, credito: 0 })),
-            ...cobros.filter(c => c.clienteId == clienteId).map(c => ({ fecha: c.fecha, concepto: 'Cobro', debito: 0, credito: c.monto }))
-        ].sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
-
-        if (transacciones.length === 0) {
-            alert('Este cliente no tiene movimientos en su cuenta corriente.');
-            return;
-        }
-
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF();
-        let y = 15, saldo = 0;
-
-        pdf.setFontSize(18); pdf.text('Estado de Cuenta Corriente', 105, y, { align: 'center' }); y += 10;
-        pdf.setFontSize(12); pdf.text(`Cliente: ${cliente.nombre}`, 14, y); y += 7;
-        pdf.text(`Fecha de Emisión: ${new Date().toLocaleDateString('es-AR')}`, 14, y); y += 15;
-        pdf.setFontSize(10); pdf.setFont('helvetica', 'bold');
-        pdf.text('Fecha', 14, y);
-        pdf.text('Concepto', 40, y);
-        pdf.text('Débito', 130, y, { align: 'right' });
-        pdf.text('Crédito', 160, y, { align: 'right' });
-        pdf.text('Saldo', 190, y, { align: 'right' });
-        y += 7; pdf.line(14, y - 2, 196, y - 2);
-        pdf.setFont('helvetica', 'normal');
-        
-        transacciones.forEach(t => {
-            saldo += t.debito - t.credito;
-            const fechaFormateada = new Date(t.fecha + 'T00:00:00').toLocaleDateString('es-AR');
-            pdf.text(fechaFormateada, 14, y);
-            pdf.text(t.concepto.substring(0, 45), 40, y); // Limito el largo del concepto
-            pdf.text(t.debito > 0 ? formatCurrency(t.debito) : '', 130, y, { align: 'right' });
-            pdf.text(t.credito > 0 ? formatCurrency(t.credito) : '', 160, y, { align: 'right' });
-            pdf.text(formatCurrency(saldo), 190, y, { align: 'right' });
-            y += 7;
-            if (y > 280) { // Salto de página
-                pdf.addPage();
-                y = 15;
-            }
-        });
-
-        y += 5; pdf.line(14, y, 196, y); y += 10;
-
-        const totalDebitos = transacciones.reduce((sum, t) => sum + t.debito, 0);
-        const totalCreditos = transacciones.reduce((sum, t) => sum + t.credito, 0);
-
-        pdf.setFontSize(12); pdf.setFont('helvetica', 'bold');
-        pdf.text('Total Débitos:', 140, y, { align: 'right' });
-        pdf.text(formatCurrency(totalDebitos), 190, y, { align: 'right' });
-        y += 7;
-        pdf.text('Total Créditos:', 140, y, { align: 'right' });
-        pdf.text(formatCurrency(totalCreditos), 190, y, { align: 'right' });
-        y += 7;
-        pdf.setFontSize(14);
-        pdf.text('Saldo Deudor:', 140, y, { align: 'right' });
-        pdf.text(formatCurrency(saldo), 190, y, { align: 'right' });
-        pdf.save(`cuenta_corriente_${cliente.nombre.replace(/\s/g,'_')}.pdf`);
-    };
-
-    // --- INICIALIZACIÓN ---
+    // --- INITIALIZATION ---
     renderUI();
-    // Set default date
-    const dateFields = ['ventaFecha', 'cobroFecha', 'stockFecha'];
     const today = new Date().toISOString().split('T')[0];
-    dateFields.forEach(id => {
+    ['ventaFecha', 'cobroFecha', 'stockFecha'].forEach(id => {
       const field = document.getElementById(id);
       if (field) field.value = today;
     });
