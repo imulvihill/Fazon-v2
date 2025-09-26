@@ -1,9 +1,10 @@
-const CACHE_NAME = 'fazon-penguin-cache-v2'; // Incrementamos la versión para forzar la actualización
+const CACHE_NAME = 'fazon-penguin-cache-v3'; // Incrementamos la versión para forzar la actualización
 const urlsToCache = [
     './', // Ruta relativa para la raíz
     './index.html', // Ruta relativa para el archivo principal
     'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap',
-    'https://www.svgrepo.com/show/134449/penguin.svg'
+    'https://www.svgrepo.com/show/134449/penguin.svg',
+    'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js' // URL de la librería PDF agregada
 ];
 
 // Instalar el Service Worker y guardar los archivos en caché
@@ -50,4 +51,3 @@ self.addEventListener('fetch', event => {
             })
     );
 });
-
