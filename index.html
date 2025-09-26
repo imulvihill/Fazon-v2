@@ -553,7 +553,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const stockDisponible = stock.filter(s => s.clienteId == clienteId && s.kgActuales > 0.001);
         
-        if (ventaEnEdicion && ventaEnEdicion.clienteId === clienteId) {
+        if (ventaEnEdicion && ventaEnEdicion.clienteId.toString() === clienteId) {
             const loteOriginal = stock.find(s => s.id === ventaEnEdicion.stockIdDescontado);
             if (loteOriginal && !stockDisponible.some(s => s.id === loteOriginal.id)) {
                 stockDisponible.push(loteOriginal);
@@ -654,8 +654,9 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('btnGuardarVenta').textContent = 'Actualizar Venta';
         document.getElementById('btnCancelarEdicionVenta').style.display = 'block';
         const v = ventaEnEdicion;
-        document.getElementById('ventaCliente').value = v.clienteId;
-        document.getElementById('ventaCliente').dispatchEvent(new Event('change'));
+        const ventaClienteSelect = document.getElementById('ventaCliente');
+        ventaClienteSelect.value = v.clienteId;
+        ventaClienteSelect.dispatchEvent(new Event('change'));
         document.getElementById('ventaStockLote').value = v.stockIdDescontado;
         document.getElementById('ventaFecha').value = v.fecha;
         document.getElementById('ventaKg').value = v.kg;
@@ -832,10 +833,15 @@ document.addEventListener('DOMContentLoaded', () => {
         pdf.text('Resumen de Café Verde por Tipo', 14, y); y += 10;
         
         pdf.setFontSize(10);
-        const cafesOrdenados = Object.values(stockAgrupado).sort((a,b) => a.tipoCafe.nombre.localeCompare(b.tipoCafe.nombre));
+        // CORRECCIÓN: Se agrega una comprobación para evitar errores si un tipo de café fue eliminado.
+        const cafesOrdenados = Object.values(stockAgrupado).sort((a, b) => {
+            const nameA = a.tipoCafe ? a.tipoCafe.nombre : '';
+            const nameB = b.tipoCafe ? b.tipoCafe.nombre : '';
+            return nameA.localeCompare(nameB);
+        });
 
         cafesOrdenados.forEach(grupo => {
-            const nombreCafe = grupo.tipoCafe ? grupo.tipoCafe.nombre : 'DESCONOCIDO';
+            const nombreCafe = grupo.tipoCafe ? grupo.tipoCafe.nombre : 'DESCONOCIDO (TIPO ELIMINADO)';
             const kgTotales = grupo.kgTotales;
 
             pdf.setFont('helvetica', 'normal');
