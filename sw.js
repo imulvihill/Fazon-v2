@@ -12,7 +12,7 @@ const urlsToCache = [
 self.addEventListener('install', event => {
     event.waitUntil(
         caches.open(CACHE_NAME)
-           .then(cache => {
+          .then(cache => {
                 console.log('Opened cache and caching files');
                 return cache.addAll(urlsToCache);
             })
@@ -42,7 +42,7 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
     event.respondWith(
         caches.match(event.request)
-           .then(response => {
+          .then(response => {
                 // Si la respuesta está en la caché, la devuelve
                 if (response) {
                     return response;
