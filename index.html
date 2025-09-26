@@ -553,8 +553,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const stockDisponible = stock.filter(s => s.clienteId == clienteId && s.kgActuales > 0.001);
         
-        // If editing, temporarily add back the stock from the sale being edited
-        if (ventaEnEdicion) {
+        if (ventaEnEdicion && ventaEnEdicion.clienteId === clienteId) {
             const loteOriginal = stock.find(s => s.id === ventaEnEdicion.stockIdDescontado);
             if (loteOriginal && !stockDisponible.some(s => s.id === loteOriginal.id)) {
                 stockDisponible.push(loteOriginal);
@@ -592,7 +591,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!loteSeleccionado || isNaN(kgATostar) || kgATostar <= 0) { alert('Error: Verifique los datos.'); return; }
         if (kgATostar > stockDisponibleParaVenta) { alert(`Error: Stock insuficiente. Disponible: ${stockDisponibleParaVenta.toFixed(2)} Kg.`); return; }
 
-        // If editing, revert the original sale first
         if (ventaEnEdicion) {
             const loteOriginal = stock.find(s => s.id == ventaEnEdicion.stockIdDescontado);
             if (loteOriginal) {
@@ -600,7 +598,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 loteOriginal.movimientos = loteOriginal.movimientos.filter(m => m.ventaId !== ventaEnEdicion.id);
             }
             logistica = logistica.filter(l => l.ventaId !== ventaEnEdicion.id);
-            ventas.splice(ventaEnEdicion.originalIndex, 1);
+            const indexToRemove = ventas.findIndex(v => v.id === ventaEnEdicion.id);
+            if (indexToRemove > -1) ventas.splice(indexToRemove, 1);
         }
 
         const bultos = parseInt(document.getElementById('ventaBultos').value);
@@ -651,25 +650,20 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- ACTIONS (EDIT / DELETE / PDF) ---
     window.editVenta = (index) => {
         ventaEnEdicion = { ...ventas[index], originalIndex: index };
-
         document.getElementById('formVentaTitle').textContent = 'Editando Venta';
         document.getElementById('btnGuardarVenta').textContent = 'Actualizar Venta';
         document.getElementById('btnCancelarEdicionVenta').style.display = 'block';
-
-        // Populate form
         const v = ventaEnEdicion;
         document.getElementById('ventaCliente').value = v.clienteId;
-        document.getElementById('ventaCliente').dispatchEvent(new Event('change')); // Trigger change to update stock list
+        document.getElementById('ventaCliente').dispatchEvent(new Event('change'));
         document.getElementById('ventaStockLote').value = v.stockIdDescontado;
         document.getElementById('ventaFecha').value = v.fecha;
         document.getElementById('ventaKg').value = v.kg;
         document.getElementById('ventaPrecioUSD').value = v.precioUSD;
         document.getElementById('ventaTipoCambio').value = v.tipoCambio;
         document.getElementById('ventaBultos').value = v.bultos;
-        
         const costoEnvio = logistica.find(l => l.ventaId === v.id);
-        document.getElementById('ventaCostoEnvioPorBulto').value = costoEnvio ? (costoEnvio.monto / v.bultos) : '';
-
+        document.getElementById('ventaCostoEnvioPorBulto').value = (costoEnvio && v.bultos > 0) ? (costoEnvio.monto / v.bultos) : '';
         formVenta.scrollIntoView({ behavior: 'smooth' });
     };
     
@@ -816,6 +810,18 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('Este cliente no tiene stock para reportar.'); return;
         }
 
+        const stockAgrupado = stockCliente.reduce((acc, lote) => {
+            const tipoId = lote.tipoCafeId;
+            if (!acc[tipoId]) {
+                acc[tipoId] = {
+                    kgTotales: 0,
+                    tipoCafe: tiposCafe.find(t => t.id === tipoId)
+                };
+            }
+            acc[tipoId].kgTotales += lote.kgActuales;
+            return acc;
+        }, {});
+
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF();
         let y = 15, totalKgCliente = 0;
@@ -823,15 +829,19 @@ document.addEventListener('DOMContentLoaded', () => {
         pdf.setFontSize(18); pdf.text(`Reporte Consolidado de Stock`, 105, y, { align: 'center' }); y += 10;
         pdf.setFontSize(14); pdf.text(`Cliente: ${cliente.nombre}`, 14, y); y += 15;
         pdf.setFontSize(12); pdf.setFont('helvetica', 'bold');
-        pdf.text('Resumen de Lotes de Café Verde', 14, y); y += 10;
+        pdf.text('Resumen de Café Verde por Tipo', 14, y); y += 10;
         
         pdf.setFontSize(10);
-        stockCliente.forEach(item => {
-            const tipoCafe = tiposCafe.find(t => t.id == item.tipoCafeId);
+        const cafesOrdenados = Object.values(stockAgrupado).sort((a,b) => a.tipoCafe.nombre.localeCompare(b.tipoCafe.nombre));
+
+        cafesOrdenados.forEach(grupo => {
+            const nombreCafe = grupo.tipoCafe ? grupo.tipoCafe.nombre : 'DESCONOCIDO';
+            const kgTotales = grupo.kgTotales;
+
             pdf.setFont('helvetica', 'normal');
-            pdf.text(tipoCafe?.nombre || 'DESCONOCIDO', 16, y);
-            pdf.text(`${item.kgActuales.toFixed(2)} Kg`, 190, y, { align: 'right' });
-            totalKgCliente += item.kgActuales;
+            pdf.text(nombreCafe, 16, y);
+            pdf.text(`${kgTotales.toFixed(2)} Kg`, 190, y, { align: 'right' });
+            totalKgCliente += kgTotales;
             y += 7;
         });
         
@@ -897,10 +907,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const field = document.getElementById(id);
       if (field) field.value = today;
     });
-});
-</script>
-</body>
-</html>
 });
 </script>
 </body>
